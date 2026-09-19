@@ -8,12 +8,9 @@ import {
   Radio,
   Settings,
   BarChart3,
-  Zap,
-  FileText,
   ChevronLeft,
   ChevronRight,
   ChevronDown,
-  Layers,
   Shield,
 } from 'lucide-react';
 
@@ -33,11 +30,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
   // Business Modules sub-tree
   const moduleItems = [
-    { id: 'erp', label: 'ERP (Resources & Stock)', icon: Boxes, shortLabel: 'ERP' },
-    { id: 'crm', label: 'CRM (Customers & Pipeline)', icon: Users, shortLabel: 'CRM' },
-    { id: 'oms', label: 'OMS (Omnichannel Orders)', icon: ShoppingCart, shortLabel: 'OMS' },
-    { id: 'dashboard', label: 'BI (Dashboards & Reports)', icon: BarChart3, shortLabel: 'BI' },
-    { id: 'workflow', label: 'Workflow (Automation Canvas)', icon: GitFork, shortLabel: 'Flow' },
+    { id: 'erp', label: 'ERP (Resources & Stock)', icon: Boxes },
+    { id: 'crm', label: 'CRM (Customers & Deals)', icon: Users },
+    { id: 'oms', label: 'OMS (Omnichannel Orders)', icon: ShoppingCart },
+    { id: 'dashboard', label: 'BI (Dashboards & Reports)', icon: BarChart3 },
+    { id: 'workflow', label: 'Workflow (Automation)', icon: GitFork },
   ];
 
   const rootItems = [
@@ -51,29 +48,27 @@ export const Sidebar: React.FC<SidebarProps> = ({
       icon: Radio,
       badge: `${connectedProvidersCount} live`,
     },
-    { id: 'workflow', label: 'Workflow Automation', icon: Zap },
-    { id: 'dashboard', label: 'Analytics Reports', icon: FileText },
     { id: 'settings', label: 'Settings & Security', icon: Settings },
   ];
 
   return (
     <aside
-      className={`bg-slate-950 border-r border-slate-800/80 flex flex-col justify-between p-3 h-screen sticky top-0 shrink-0 select-none transition-all duration-300 ${
+      className={`bg-white border-r border-slate-200/90 flex flex-col justify-between p-3.5 h-screen sticky top-0 shrink-0 select-none transition-all duration-300 ease-out shadow-[1px_0_2px_rgba(0,0,0,0.02)] ${
         isCollapsed ? 'w-20' : 'w-64'
       }`}
     >
       <div>
         {/* Brand Header */}
-        <div className="flex items-center justify-between pb-4 mb-4 border-b border-slate-800">
+        <div className="flex items-center justify-between pb-3.5 mb-4 border-b border-slate-100">
           <div className="flex items-center gap-2.5 overflow-hidden">
-            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-500 via-teal-400 to-emerald-400 flex items-center justify-center font-black text-slate-950 shadow-md shadow-teal-500/20 shrink-0">
+            <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-teal-600 to-emerald-500 flex items-center justify-center font-black text-white shadow-md shadow-teal-500/20 shrink-0">
               U
             </div>
             {!isCollapsed && (
               <div className="min-w-0">
                 <div className="flex items-center gap-1.5">
-                  <span className="font-extrabold text-sm text-slate-100 tracking-tight">UBOP</span>
-                  <span className="text-[9px] font-mono uppercase px-1.5 py-0.2 rounded bg-teal-500/10 text-teal-400 border border-teal-500/30">
+                  <span className="font-extrabold text-sm text-slate-900 tracking-tight">UBOP</span>
+                  <span className="text-[9px] font-mono uppercase font-bold px-1.5 py-0.2 rounded bg-teal-50 text-teal-700 border border-teal-200/60">
                     OS
                   </span>
                 </div>
@@ -85,7 +80,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
           <button
             type="button"
             onClick={() => setIsCollapsed(!isCollapsed)}
-            className="p-1 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-900 transition-colors"
+            className="p-1 rounded-lg text-slate-400 hover:text-slate-700 hover:bg-slate-100 transition-colors btn-press"
             title={isCollapsed ? 'Expand Sidebar' : 'Collapse Sidebar'}
           >
             {isCollapsed ? <ChevronRight className="w-4 h-4" /> : <ChevronLeft className="w-4 h-4" />}
@@ -94,9 +89,9 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Tree Navigation */}
         <nav className="space-y-1 text-xs">
-          {/* Workspace Root: Dashboard */}
+          {/* Workspace Root */}
           {!isCollapsed && (
-            <div className="text-[10px] font-mono uppercase text-slate-500 px-3 py-1 font-semibold">
+            <div className="text-[10px] font-mono uppercase text-slate-400 px-3 py-1 font-semibold tracking-wider">
               Workspace
             </div>
           )}
@@ -108,14 +103,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 key={item.id}
                 onClick={() => onTabChange(item.id)}
-                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-semibold transition-all ${
+                className={`w-full flex items-center gap-3 px-3 py-2 rounded-xl font-semibold transition-all duration-200 ${
                   active
-                    ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 shadow-sm'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 border border-transparent'
+                    ? 'bg-teal-50 text-teal-800 border border-teal-200/80 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'
                 }`}
                 title={item.label}
               >
-                <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-teal-400' : 'text-slate-500'}`} />
+                <Icon className={`w-4 h-4 shrink-0 transition-colors ${active ? 'text-teal-600' : 'text-slate-400'}`} />
                 {!isCollapsed && <span className="truncate">{item.label}</span>}
               </button>
             );
@@ -127,22 +122,19 @@ export const Sidebar: React.FC<SidebarProps> = ({
               <button
                 type="button"
                 onClick={() => setIsModulesOpen(!isModulesOpen)}
-                className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-mono uppercase text-slate-500 font-semibold hover:text-slate-300"
+                className="w-full flex items-center justify-between px-3 py-1 text-[10px] font-mono uppercase text-slate-400 font-semibold hover:text-slate-600 transition-colors"
               >
-                <span className="flex items-center gap-1.5">
-                  <Layers className="w-3 h-3 text-slate-500" />
-                  Business Modules
-                </span>
+                <span>Business Modules</span>
                 <ChevronDown
-                  className={`w-3 h-3 transition-transform ${isModulesOpen ? 'rotate-0' : '-rotate-90'}`}
+                  className={`w-3 h-3 transition-transform duration-200 ${isModulesOpen ? 'rotate-0' : '-rotate-90'}`}
                 />
               </button>
             ) : (
-              <div className="h-0.5 bg-slate-800 my-2" />
+              <div className="h-0.5 bg-slate-100 my-2" />
             )}
 
             {(isModulesOpen || isCollapsed) && (
-              <div className={`space-y-1 ${!isCollapsed ? 'pl-2 pt-1' : ''}`}>
+              <div className={`space-y-0.5 ${!isCollapsed ? 'pl-2 pt-1' : ''}`}>
                 {moduleItems.map((m) => {
                   const Icon = m.icon;
                   const active = currentTab === m.id;
@@ -150,14 +142,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     <button
                       key={m.id}
                       onClick={() => onTabChange(m.id)}
-                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold transition-all ${
+                      className={`w-full flex items-center gap-2.5 px-3 py-2 rounded-xl font-semibold transition-all duration-200 ${
                         active
-                          ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 shadow-sm'
-                          : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 border border-transparent'
+                          ? 'bg-teal-50 text-teal-800 border border-teal-200/80 shadow-xs'
+                          : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'
                       }`}
                       title={m.label}
                     >
-                      <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-teal-400' : 'text-slate-500'}`} />
+                      <Icon className={`w-4 h-4 shrink-0 transition-colors ${active ? 'text-teal-600' : 'text-slate-400'}`} />
                       {!isCollapsed && <span className="truncate">{m.label}</span>}
                     </button>
                   );
@@ -169,8 +161,8 @@ export const Sidebar: React.FC<SidebarProps> = ({
           {/* Platform / Integrations / Settings */}
           <div className="pt-2">
             {!isCollapsed && (
-              <div className="text-[10px] font-mono uppercase text-slate-500 px-3 py-1 font-semibold">
-                Platform & Adapters
+              <div className="text-[10px] font-mono uppercase text-slate-400 px-3 py-1 font-semibold tracking-wider">
+                Platform
               </div>
             )}
 
@@ -181,20 +173,20 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 <button
                   key={item.id}
                   onClick={() => onTabChange(item.id)}
-                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition-all ${
+                  className={`w-full flex items-center justify-between px-3 py-2 rounded-xl font-semibold transition-all duration-200 ${
                     active
-                      ? 'bg-teal-500/15 text-teal-300 border border-teal-500/30 shadow-sm'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/80 border border-transparent'
+                      ? 'bg-teal-50 text-teal-800 border border-teal-200/80 shadow-xs'
+                      : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'
                   }`}
                   title={item.label}
                 >
                   <div className="flex items-center gap-2.5 min-w-0">
-                    <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-teal-400' : 'text-slate-500'}`} />
+                    <Icon className={`w-4 h-4 shrink-0 transition-colors ${active ? 'text-teal-600' : 'text-slate-400'}`} />
                     {!isCollapsed && <span className="truncate">{item.label}</span>}
                   </div>
 
                   {!isCollapsed && item.badge && (
-                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full font-bold uppercase bg-slate-900 text-teal-400 border border-teal-500/30 shrink-0">
+                    <span className="text-[9px] font-mono px-1.5 py-0.2 rounded-full font-bold uppercase bg-teal-50 text-teal-700 border border-teal-200 shrink-0">
                       {item.badge}
                     </span>
                   )}
@@ -205,30 +197,25 @@ export const Sidebar: React.FC<SidebarProps> = ({
         </nav>
       </div>
 
-      {/* Footer System Status & Permission Indicator */}
+      {/* Footer Status */}
       <div className="space-y-2">
         {!isCollapsed && (
-          <div className="p-2.5 bg-slate-900/70 rounded-xl border border-slate-800 text-[11px] flex items-center justify-between">
-            <span className="flex items-center gap-1.5 text-slate-300 font-semibold">
-              <Shield className="w-3.5 h-3.5 text-teal-400" />
+          <div className="p-2.5 bg-slate-50 rounded-xl border border-slate-200/80 text-[11px] flex items-center justify-between">
+            <span className="flex items-center gap-1.5 text-slate-700 font-semibold">
+              <Shield className="w-3.5 h-3.5 text-teal-600" />
               Role: Admin
             </span>
-            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-bold">
+            <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-50 text-emerald-700 border border-emerald-200 font-bold">
               Full RBAC
             </span>
           </div>
         )}
 
-        <div className="p-2.5 bg-slate-900/50 rounded-xl border border-slate-800 text-xs text-center">
-          <div className="flex items-center justify-center gap-1.5 text-emerald-400 font-bold text-[11px]">
-            <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />
+        <div className="p-2 bg-slate-50/80 rounded-xl border border-slate-200 text-xs text-center">
+          <div className="flex items-center justify-center gap-1.5 text-emerald-600 font-bold text-[11px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
             {!isCollapsed ? 'Platform Operational' : 'OK'}
           </div>
-          {!isCollapsed && (
-            <span className="text-[10px] text-slate-500 font-mono mt-0.5 block">
-              EventBus • FastAPI 3.12
-            </span>
-          )}
         </div>
       </div>
     </aside>

@@ -118,65 +118,68 @@ export function DataTable<T>({
     !allCurrentPageSelected;
 
   const toggleSelectAll = () => {
-    const newSet = new Set(selectedIds);
+    const next = new Set(selectedIds);
     if (allCurrentPageSelected) {
-      paginatedData.forEach((row) => newSet.delete(keyExtractor(row)));
+      paginatedData.forEach((row) => next.delete(keyExtractor(row)));
     } else {
-      paginatedData.forEach((row) => newSet.add(keyExtractor(row)));
+      paginatedData.forEach((row) => next.add(keyExtractor(row)));
     }
-    setSelectedIds(newSet);
+    setSelectedIds(next);
   };
 
-  const toggleSelectRow = (key: string | number) => {
-    const newSet = new Set(selectedIds);
-    if (newSet.has(key)) {
-      newSet.delete(key);
+  const toggleSelectRow = (id: string | number) => {
+    const next = new Set(selectedIds);
+    if (next.has(id)) {
+      next.delete(id);
     } else {
-      newSet.add(key);
+      next.add(id);
     }
-    setSelectedIds(newSet);
-  };
-
-  // Export CSV
-  const handleExportCSV = () => {
-    if (sortedData.length === 0) return;
-    const headerRow = columns.map((c) => `"${c.header.replace(/"/g, '""')}"`).join(',');
-    const rows = sortedData.map((row) => {
-      return columns
-        .map((c) => {
-          const val = c.accessor ? c.accessor(row) : (row as any)[c.id];
-          return `"${String(val ?? '').replace(/"/g, '""')}"`;
-        })
-        .join(',');
-    });
-    const csvContent = [headerRow, ...rows].join('\n');
-    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', `export_${new Date().toISOString().slice(0, 10)}.csv`);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-  };
-
-  const densityClasses = {
-    compact: 'py-1.5 px-3 text-[11px]',
-    standard: 'py-2.5 px-3.5 text-xs',
-    relaxed: 'py-3.5 px-4 text-xs',
+    setSelectedIds(next);
   };
 
   const selectedRowsList = useMemo(() => {
     return data.filter((row) => selectedIds.has(keyExtractor(row)));
   }, [data, selectedIds, keyExtractor]);
 
+  // Export CSV
+  const handleExportCSV = () => {
+    const headers = columns.map((c) => c.header).join(',');
+    const rows = sortedData.map((row) => {
+      return columns
+        .map((col) => {
+          const val = col.accessor
+            ? col.accessor(row)
+            : (row as any)[col.id];
+          const str = String(val ?? '').replace(/"/g, '""');
+          return `"${str}"`;
+        })
+        .join(',');
+    });
+    const csvContent = [headers, ...rows].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `export_${Date.now()}.csv`);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+  };
+
+  const densityClasses = {
+    compact: 'py-2 px-3 text-xs',
+    standard: 'py-3.5 px-4 text-xs',
+    relaxed: 'py-5 px-5 text-sm',
+  };
+
   return (
     <div className="space-y-3">
-      {/* Top Toolbar */}
-      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3 text-xs">
-        <div className="flex items-center gap-2 flex-1 max-w-md">
-          <div className="relative flex-1">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+      {/* Table Toolbar */}
+      <div className="flex flex-col sm:flex-row items-stretch sm:items-center justify-between gap-3">
+        {/* Search */}
+        <div className="flex-1 max-w-sm">
+          <div className="relative">
+            <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
@@ -185,18 +188,18 @@ export function DataTable<T>({
                 setCurrentPage(1);
               }}
               placeholder={searchPlaceholder}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500"
+              className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-teal-500 shadow-xs"
             />
           </div>
         </div>
 
         <div className="flex items-center gap-2">
           {/* Density Selector */}
-          <div className="inline-flex bg-slate-950 p-0.5 rounded-xl border border-slate-800">
+          <div className="inline-flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
             <button
               onClick={() => setDensity('compact')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-colors ${
-                density === 'compact' ? 'bg-slate-800 text-teal-400 font-bold' : 'text-slate-400'
+              className={`px-2 py-1 rounded-md text-[10px] font-medium transition-colors ${
+                density === 'compact' ? 'bg-white text-teal-800 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-700'
               }`}
               title="Compact density"
             >
@@ -204,8 +207,8 @@ export function DataTable<T>({
             </button>
             <button
               onClick={() => setDensity('standard')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-colors ${
-                density === 'standard' ? 'bg-slate-800 text-teal-400 font-bold' : 'text-slate-400'
+              className={`px-2 py-1 rounded-md text-[10px] font-medium transition-colors ${
+                density === 'standard' ? 'bg-white text-teal-800 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-700'
               }`}
               title="Standard density"
             >
@@ -213,8 +216,8 @@ export function DataTable<T>({
             </button>
             <button
               onClick={() => setDensity('relaxed')}
-              className={`px-2 py-1 rounded-lg text-[10px] font-medium transition-colors ${
-                density === 'relaxed' ? 'bg-slate-800 text-teal-400 font-bold' : 'text-slate-400'
+              className={`px-2 py-1 rounded-md text-[10px] font-medium transition-colors ${
+                density === 'relaxed' ? 'bg-white text-teal-800 font-bold shadow-xs' : 'text-slate-500 hover:text-slate-700'
               }`}
               title="Relaxed density"
             >
@@ -225,19 +228,19 @@ export function DataTable<T>({
           {/* Export Button */}
           <button
             onClick={handleExportCSV}
-            className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-slate-300 transition-colors"
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-700 text-xs font-medium transition-colors shadow-xs btn-press"
             title="Export to CSV"
           >
-            <Download className="w-3.5 h-3.5 text-slate-400" /> Export CSV
+            <Download className="w-3.5 h-3.5 text-slate-500" /> Export CSV
           </button>
         </div>
       </div>
 
       {/* Bulk Action Bar (when rows selected) */}
       {selectedIds.size > 0 && (
-        <div className="p-2.5 bg-teal-950/40 border border-teal-500/40 rounded-xl flex items-center justify-between gap-3 text-xs animate-in fade-in duration-150">
-          <div className="flex items-center gap-2 text-teal-300 font-medium">
-            <CheckSquare className="w-4 h-4 text-teal-400" />
+        <div className="p-2.5 bg-teal-50 border border-teal-200 rounded-xl flex items-center justify-between gap-3 text-xs animate-smooth-scale text-teal-900">
+          <div className="flex items-center gap-2 font-medium">
+            <CheckSquare className="w-4 h-4 text-teal-600" />
             <span>
               {selectedIds.size} {selectedIds.size === 1 ? 'row' : 'rows'} selected
             </span>
@@ -247,7 +250,7 @@ export function DataTable<T>({
             {bulkActions && bulkActions(selectedRowsList)}
             <button
               onClick={() => setSelectedIds(new Set())}
-              className="px-2.5 py-1 text-slate-400 hover:text-slate-200 text-[11px]"
+              className="px-2.5 py-1 text-slate-500 hover:text-slate-800 text-[11px] font-medium"
             >
               Clear Selection
             </button>
@@ -256,24 +259,24 @@ export function DataTable<T>({
       )}
 
       {/* Table Container */}
-      <div className="bg-slate-950/60 border border-slate-800 rounded-2xl overflow-hidden shadow-lg">
+      <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs">
         <div className="overflow-x-auto">
           <table className="w-full text-left border-collapse">
             <thead>
-              <tr className="bg-slate-900 border-b border-slate-800 text-[11px] font-mono uppercase text-slate-400">
+              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-semibold uppercase text-slate-500">
                 {/* Checkbox Column */}
                 <th className="p-3 w-10 text-center">
                   <button
                     type="button"
                     onClick={toggleSelectAll}
-                    className="text-slate-400 hover:text-slate-200"
+                    className="text-slate-400 hover:text-slate-600"
                   >
                     {allCurrentPageSelected ? (
-                      <CheckSquare className="w-4 h-4 text-teal-400" />
+                      <CheckSquare className="w-4 h-4 text-teal-600" />
                     ) : someCurrentPageSelected ? (
-                      <MinusSquare className="w-4 h-4 text-teal-400" />
+                      <MinusSquare className="w-4 h-4 text-teal-600" />
                     ) : (
-                      <Square className="w-4 h-4 text-slate-600" />
+                      <Square className="w-4 h-4 text-slate-400" />
                     )}
                   </button>
                 </th>
@@ -297,17 +300,17 @@ export function DataTable<T>({
                         <button
                           type="button"
                           onClick={() => handleSort(col.id)}
-                          className="inline-flex items-center gap-1 hover:text-slate-200 transition-colors uppercase font-mono text-[10px]"
+                          className="inline-flex items-center gap-1 hover:text-slate-800 transition-colors uppercase font-mono text-[10px]"
                         >
                           <span>{col.header}</span>
                           {isSorted ? (
                             sortDirection === 'asc' ? (
-                              <ChevronUp className="w-3.5 h-3.5 text-teal-400" />
+                              <ChevronUp className="w-3.5 h-3.5 text-teal-600" />
                             ) : (
-                              <ChevronDown className="w-3.5 h-3.5 text-teal-400" />
+                              <ChevronDown className="w-3.5 h-3.5 text-teal-600" />
                             )
                           ) : (
-                            <ChevronsUpDown className="w-3 h-3 text-slate-600" />
+                            <ChevronsUpDown className="w-3 h-3 text-slate-400" />
                           )}
                         </button>
                       ) : (
@@ -319,17 +322,17 @@ export function DataTable<T>({
               </tr>
             </thead>
 
-            <tbody className="divide-y divide-slate-800/60">
+            <tbody className="divide-y divide-slate-100">
               {isLoading ? (
                 // Loading Skeleton Rows
                 Array.from({ length: 5 }).map((_, i) => (
                   <tr key={i} className="animate-pulse">
                     <td className="p-3 text-center">
-                      <div className="w-4 h-4 bg-slate-800 rounded mx-auto" />
+                      <div className="w-4 h-4 bg-slate-100 rounded mx-auto" />
                     </td>
                     {columns.map((col) => (
                       <td key={col.id} className={densityClasses[density]}>
-                        <div className="h-4 bg-slate-800 rounded w-3/4" />
+                        <div className="h-4 bg-slate-100 rounded w-3/4" />
                       </td>
                     ))}
                   </tr>
@@ -338,8 +341,8 @@ export function DataTable<T>({
                 // Empty State
                 <tr>
                   <td colSpan={columns.length + 1} className="py-12 text-center">
-                    <Filter className="w-8 h-8 text-slate-600 mx-auto mb-2" />
-                    <div className="text-sm font-semibold text-slate-300">{emptyMessage}</div>
+                    <Filter className="w-8 h-8 text-slate-300 mx-auto mb-2" />
+                    <div className="text-sm font-semibold text-slate-800">{emptyMessage}</div>
                     <div className="text-xs text-slate-500 mt-1">{emptySubtext}</div>
                   </td>
                 </tr>
@@ -352,20 +355,20 @@ export function DataTable<T>({
                   return (
                     <tr
                       key={rowKey}
-                      className={`hover:bg-slate-900/40 transition-colors ${
-                        isSelected ? 'bg-teal-950/20' : ''
+                      className={`hover:bg-slate-50/70 transition-colors ${
+                        isSelected ? 'bg-teal-50/50' : ''
                       }`}
                     >
                       <td className="p-3 text-center align-middle">
                         <button
                           type="button"
                           onClick={() => toggleSelectRow(rowKey)}
-                          className="text-slate-400 hover:text-slate-200"
+                          className="text-slate-400 hover:text-slate-600"
                         >
                           {isSelected ? (
-                            <CheckSquare className="w-4 h-4 text-teal-400" />
+                            <CheckSquare className="w-4 h-4 text-teal-600" />
                           ) : (
-                            <Square className="w-4 h-4 text-slate-600" />
+                            <Square className="w-4 h-4 text-slate-300" />
                           )}
                         </button>
                       </td>
@@ -381,7 +384,7 @@ export function DataTable<T>({
                         return (
                           <td
                             key={col.id}
-                            className={`${densityClasses[density]} ${alignClass} text-slate-300 align-middle`}
+                            className={`${densityClasses[density]} ${alignClass} text-slate-700 align-middle`}
                           >
                             {col.cell
                               ? col.cell(row)
@@ -400,7 +403,7 @@ export function DataTable<T>({
         </div>
 
         {/* Pagination Footer */}
-        <div className="p-3 bg-slate-950 border-t border-slate-800 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-400">
+        <div className="p-3 bg-white border-t border-slate-200 flex flex-col sm:flex-row items-center justify-between gap-3 text-xs text-slate-500">
           <div className="flex items-center gap-2">
             <span>
               Showing {sortedData.length === 0 ? 0 : (currentPage - 1) * pageSize + 1} to{' '}
@@ -418,7 +421,7 @@ export function DataTable<T>({
                   setPageSize(Number(e.target.value));
                   setCurrentPage(1);
                 }}
-                className="bg-slate-900 border border-slate-800 rounded-lg px-2 py-1 text-slate-200 font-mono text-[11px]"
+                className="bg-slate-50 border border-slate-200 rounded-lg px-2 py-1 text-slate-700 font-mono text-[11px]"
               >
                 <option value={5}>5</option>
                 <option value={10}>10</option>
@@ -433,12 +436,12 @@ export function DataTable<T>({
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.max(1, p - 1))}
                 disabled={currentPage === 1}
-                className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed btn-press shadow-xs"
               >
                 <ChevronLeft className="w-3.5 h-3.5" />
               </button>
 
-              <span className="font-mono px-2 text-[11px] text-slate-300">
+              <span className="font-mono px-2 text-[11px] text-slate-600">
                 {currentPage} / {totalPages}
               </span>
 
@@ -446,7 +449,7 @@ export function DataTable<T>({
                 type="button"
                 onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))}
                 disabled={currentPage === totalPages}
-                className="p-1.5 rounded-lg bg-slate-900 border border-slate-800 text-slate-400 hover:text-slate-200 disabled:opacity-30 disabled:cursor-not-allowed"
+                className="p-1.5 rounded-lg bg-white border border-slate-200 text-slate-600 hover:bg-slate-50 disabled:opacity-30 disabled:cursor-not-allowed btn-press shadow-xs"
               >
                 <ChevronRight className="w-3.5 h-3.5" />
               </button>

@@ -77,8 +77,8 @@ export const ErpView: React.FC<ErpViewProps> = ({
   // Calculate SAP Fiori Inventory Metrics
   const totalProductsCount = products.length;
   const lowStockCount = products.filter((p) => getStockCount(p.id) <= 10).length;
-  const incomingShipments = 145; // Units in transit from suppliers
-  const outgoingOrders = 38; // Units pending dispatch
+  const incomingShipments = 145;
+  const outgoingOrders = 38;
 
   // Calculate SAP Fiori Finance Metrics
   const totalRevenue = products.reduce((acc, p) => acc + p.price * 12, 48250.0);
@@ -100,32 +100,22 @@ export const ErpView: React.FC<ErpViewProps> = ({
     },
     {
       id: 'TXN-2026-0919-02',
-      date: 'Sep 18, 2026',
+      date: 'Sep 19, 2026',
       type: 'COGS',
-      account: '5010 - Cost of Goods Sold',
-      description: 'Inventory relief for ORD-2026-0919-01',
-      amount: 4340.0,
+      account: '5010 - Raw Hardware Material Procurement',
+      description: 'Main warehouse stock replenishment batch #89',
+      amount: 4200.0,
       isCredit: false,
       status: 'POSTED',
     },
     {
-      id: 'TXN-2026-0917-03',
-      date: 'Sep 17, 2026',
-      type: 'PAYROLL',
-      account: '6010 - Warehouse Operations Wages',
-      description: 'Bi-weekly fulfillment labor run',
-      amount: 8200.0,
-      isCredit: false,
-      status: 'RECONCILED',
-    },
-    {
-      id: 'TXN-2026-0915-04',
-      date: 'Sep 15, 2026',
-      type: 'SUPPLIER_PO',
-      account: '2010 - Accounts Payable',
-      description: 'Supplier PO #9019 Raw Materials',
-      amount: 14500.0,
-      isCredit: false,
+      id: 'TXN-2026-0919-03',
+      date: 'Sep 18, 2026',
+      type: 'REVENUE',
+      account: '4010 - Omnichannel Product Sales',
+      description: 'Order ORD-2026-0919-02 settlement',
+      amount: 17600.0,
+      isCredit: true,
       status: 'POSTED',
     },
   ];
@@ -174,15 +164,15 @@ export const ErpView: React.FC<ErpViewProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-smooth-fade">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-100 tracking-tight">
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">
             Enterprise Resource Planning (ERP)
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            SAP Fiori design layout: Real-time inventory ATP, warehouse bins, and financial general ledger.
+          <p className="text-xs text-slate-500 mt-1">
+            Real-time inventory ATP, warehouse bins, and financial general ledger.
           </p>
         </div>
 
@@ -190,7 +180,7 @@ export const ErpView: React.FC<ErpViewProps> = ({
           {activeErpTab === 'INVENTORY' && (
             <button
               onClick={() => setIsProductModalOpen(true)}
-              className="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition-all shadow-lg shadow-teal-500/10 shrink-0"
+              className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded-lg text-xs transition-all shadow-xs shrink-0 btn-press"
             >
               <Plus className="w-4 h-4" /> Add Catalog SKU
             </button>
@@ -198,14 +188,14 @@ export const ErpView: React.FC<ErpViewProps> = ({
         </div>
       </div>
 
-      {/* SAP Fiori Sub-Navigation Tabs: Inventory vs Finance */}
-      <div className="flex items-center gap-2 border-b border-slate-800 pb-2.5">
+      {/* Sub-Navigation Tabs: Inventory vs Finance */}
+      <div className="flex items-center gap-2 border-b border-slate-200 pb-2.5">
         <button
           onClick={() => setActiveErpTab('INVENTORY')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-press ${
             activeErpTab === 'INVENTORY'
-              ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+              ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <Boxes className="w-4 h-4" />
@@ -214,10 +204,10 @@ export const ErpView: React.FC<ErpViewProps> = ({
 
         <button
           onClick={() => setActiveErpTab('FINANCE')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-press ${
             activeErpTab === 'FINANCE'
-              ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-sm'
-              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+              ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
           <Receipt className="w-4 h-4" />
@@ -225,10 +215,10 @@ export const ErpView: React.FC<ErpViewProps> = ({
         </button>
       </div>
 
-      {/* TAB 1: SAP FIORI INVENTORY */}
+      {/* TAB 1: INVENTORY */}
       {activeErpTab === 'INVENTORY' && (
-        <div className="space-y-6 animate-in fade-in duration-150">
-          {/* Inventory Overview Cards (Total Products, Low Stock, Incoming, Outgoing) */}
+        <div className="space-y-6 animate-smooth-fade">
+          {/* Inventory Overview Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricCard
               title="Total Products"
@@ -266,14 +256,14 @@ export const ErpView: React.FC<ErpViewProps> = ({
           </div>
 
           {/* Filter Bar */}
-          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-white p-3 rounded-2xl border border-slate-200/90 shadow-xs">
             <div className="flex items-center gap-2">
               <button
                 onClick={() => setFilterLowStockOnly(!filterLowStockOnly)}
-                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all btn-press ${
                   filterLowStockOnly
-                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
-                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-slate-800'
+                    ? 'bg-rose-50 text-rose-700 border border-rose-200 shadow-xs'
+                    : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200'
                 }`}
               >
                 {filterLowStockOnly ? '✓ Showing Low Stock Only' : 'Filter Low Stock'}
@@ -281,22 +271,22 @@ export const ErpView: React.FC<ErpViewProps> = ({
             </div>
 
             <div className="relative w-full sm:w-72">
-              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <Search className="w-4 h-4 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 placeholder="Search SKU or product title..."
-                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg pl-9 pr-3 py-1.5 text-xs text-slate-900 placeholder-slate-400 focus:outline-none focus:border-teal-500"
               />
             </div>
           </div>
 
-          {/* Inventory Table (SKU, Warehouse, Quantity, Status) */}
-          <div className="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+          {/* Inventory Table */}
+          <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs">
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-slate-900 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
+                <thead className="bg-slate-50 text-slate-500 uppercase text-[11px] font-semibold border-b border-slate-200">
                   <tr>
                     <th className="px-5 py-3.5">SKU / Item Name</th>
                     <th className="px-5 py-3.5">Warehouse Location</th>
@@ -306,10 +296,10 @@ export const ErpView: React.FC<ErpViewProps> = ({
                     <th className="px-5 py-3.5 text-right">Quick Stock Adjustment</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-slate-100 text-slate-700">
                   {filteredProducts.length === 0 ? (
                     <tr>
-                      <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                      <td colSpan={6} className="px-6 py-12 text-center text-slate-400">
                         No catalog items match criteria.
                       </td>
                     </tr>
@@ -320,20 +310,20 @@ export const ErpView: React.FC<ErpViewProps> = ({
                       const isLow = stock <= 10;
 
                       return (
-                        <tr key={p.id} className="hover:bg-slate-900/50 transition-colors">
+                        <tr key={p.id} className="hover:bg-slate-50/70 transition-colors">
                           <td className="px-5 py-3.5">
-                            <div className="font-mono font-bold text-teal-400">{p.sku}</div>
-                            <div className="font-semibold text-slate-100 text-xs mt-0.5">{p.name}</div>
+                            <div className="font-mono font-bold text-teal-700">{p.sku}</div>
+                            <div className="font-semibold text-slate-900 text-xs mt-0.5">{p.name}</div>
                           </td>
 
                           <td className="px-5 py-3.5">
-                            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-slate-300 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
-                              <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                              <Building2 className="w-3.5 h-3.5 text-slate-400" />
                               WH-{warehouse} (Bay A3)
                             </span>
                           </td>
 
-                          <td className="px-5 py-3.5 font-mono font-bold text-base text-slate-100">
+                          <td className="px-5 py-3.5 font-mono font-bold text-base text-slate-900">
                             {stock}
                           </td>
 
@@ -341,8 +331,8 @@ export const ErpView: React.FC<ErpViewProps> = ({
                             <span
                               className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold ${
                                 isLow
-                                  ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
-                                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                                  ? 'bg-rose-50 text-rose-700 border border-rose-200'
+                                  : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               }`}
                             >
                               {isLow ? (
@@ -358,7 +348,7 @@ export const ErpView: React.FC<ErpViewProps> = ({
                           </td>
 
                           <td className="px-5 py-3.5 font-mono text-xs">
-                            <div className="text-slate-100 font-bold">${p.price.toFixed(2)}</div>
+                            <div className="text-slate-900 font-bold">${p.price.toFixed(2)}</div>
                             <div className="text-[10px] text-slate-500">Cost: ${p.cost.toFixed(2)}</div>
                           </td>
 
@@ -369,7 +359,7 @@ export const ErpView: React.FC<ErpViewProps> = ({
                                 setSelectedProductId(p.id);
                                 setIsStockModalOpen(true);
                               }}
-                              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-teal-400 rounded-xl font-semibold text-xs transition-colors"
+                              className="px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-teal-700 rounded-lg font-semibold text-xs transition-colors btn-press"
                             >
                               Adjust Stock
                             </button>
@@ -385,10 +375,10 @@ export const ErpView: React.FC<ErpViewProps> = ({
         </div>
       )}
 
-      {/* TAB 2: SAP FIORI FINANCE */}
+      {/* TAB 2: FINANCE */}
       {activeErpTab === 'FINANCE' && (
-        <div className="space-y-6 animate-in fade-in duration-150">
-          {/* Finance Overview Cards (Revenue, Cost, Profit, Transactions) */}
+        <div className="space-y-6 animate-smooth-fade">
+          {/* Finance Overview Cards */}
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
             <MetricCard
               title="Revenue"
@@ -426,17 +416,17 @@ export const ErpView: React.FC<ErpViewProps> = ({
           </div>
 
           {/* Transactions Ledger Table */}
-          <div className="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-            <div className="p-3.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
-              <span className="font-bold text-slate-100 text-xs">General Ledger Transactions</span>
-              <span className="text-[11px] font-mono text-slate-400">
+          <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs">
+            <div className="p-3.5 bg-slate-50 border-b border-slate-200 flex items-center justify-between">
+              <span className="font-bold text-slate-800 text-xs">General Ledger Transactions</span>
+              <span className="text-[11px] font-mono text-slate-500">
                 Period: Fiscal Year 2026 Q3 (Open)
               </span>
             </div>
 
             <div className="overflow-x-auto">
               <table className="w-full text-left text-xs border-collapse">
-                <thead className="bg-slate-900/60 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
+                <thead className="bg-slate-50 text-slate-500 uppercase text-[11px] font-semibold border-b border-slate-200">
                   <tr>
                     <th className="px-5 py-3.5">Transaction ID</th>
                     <th className="px-5 py-3.5">Account Code & Name</th>
@@ -446,23 +436,23 @@ export const ErpView: React.FC<ErpViewProps> = ({
                     <th className="px-5 py-3.5 text-right">Date</th>
                   </tr>
                 </thead>
-                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                <tbody className="divide-y divide-slate-100 text-slate-700">
                   {ledgerTransactions.map((tx) => (
-                    <tr key={tx.id} className="hover:bg-slate-900/50 transition-colors">
-                      <td className="px-5 py-3.5 font-mono font-bold text-teal-400">{tx.id}</td>
-                      <td className="px-5 py-3.5 font-semibold text-slate-100">{tx.account}</td>
-                      <td className="px-5 py-3.5 text-slate-400">{tx.description}</td>
+                    <tr key={tx.id} className="hover:bg-slate-50/70 transition-colors">
+                      <td className="px-5 py-3.5 font-mono font-bold text-teal-700">{tx.id}</td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-900">{tx.account}</td>
+                      <td className="px-5 py-3.5 text-slate-500">{tx.description}</td>
                       <td className="px-5 py-3.5 font-mono font-bold">
-                        <span className={tx.isCredit ? 'text-emerald-400' : 'text-rose-400'}>
+                        <span className={tx.isCredit ? 'text-emerald-700' : 'text-rose-700'}>
                           {tx.isCredit ? '+' : '-'}${tx.amount.toFixed(2)}
                         </span>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                        <span className="px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold bg-emerald-50 text-emerald-700 border border-emerald-200">
                           {tx.status}
                         </span>
                       </td>
-                      <td className="px-5 py-3.5 text-right font-mono text-slate-500 text-[11px]">
+                      <td className="px-5 py-3.5 text-right font-mono text-slate-400 text-[11px]">
                         {tx.date}
                       </td>
                     </tr>
@@ -478,37 +468,37 @@ export const ErpView: React.FC<ErpViewProps> = ({
       <Modal
         isOpen={isProductModalOpen}
         onClose={() => setIsProductModalOpen(false)}
-        title="Register Product SKU in SAP Catalog"
+        title="Register Product SKU in Catalog"
       >
         <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-400 font-medium mb-1">SKU Code *</label>
+              <label className="block text-slate-700 font-medium mb-1">SKU Code *</label>
               <input
                 type="text"
                 required
                 value={productForm.sku}
                 onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
                 placeholder="SKU-PRO-001"
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
+                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500 font-mono"
               />
             </div>
             <div>
-              <label className="block text-slate-400 font-medium mb-1">Product Title *</label>
+              <label className="block text-slate-700 font-medium mb-1">Product Title *</label>
               <input
                 type="text"
                 required
                 value={productForm.name}
                 onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
                 placeholder="Enterprise Industrial Sensor"
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-400 font-medium mb-1">Sales Price ($)</label>
+              <label className="block text-slate-700 font-medium mb-1">Sales Price ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -517,11 +507,11 @@ export const ErpView: React.FC<ErpViewProps> = ({
                 onChange={(e) =>
                   setProductForm({ ...productForm, price: parseFloat(e.target.value) })
                 }
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
+                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500 font-mono"
               />
             </div>
             <div>
-              <label className="block text-slate-400 font-medium mb-1">Unit Cost ($)</label>
+              <label className="block text-slate-700 font-medium mb-1">Unit Cost ($)</label>
               <input
                 type="number"
                 step="0.01"
@@ -530,23 +520,23 @@ export const ErpView: React.FC<ErpViewProps> = ({
                 onChange={(e) =>
                   setProductForm({ ...productForm, cost: parseFloat(e.target.value) })
                 }
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
+                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500 font-mono"
               />
             </div>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setIsProductModalOpen(false)}
-              className="px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors btn-press"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 shadow-xs btn-press"
             >
               {loading ? 'Registering...' : 'Save SKU'}
             </button>
@@ -562,31 +552,31 @@ export const ErpView: React.FC<ErpViewProps> = ({
       >
         <form onSubmit={handleStockSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block text-slate-400 font-medium mb-1">Stock Quantity Delta *</label>
+            <label className="block text-slate-700 font-medium mb-1">Stock Quantity Delta *</label>
             <input
               type="number"
               required
               value={stockDelta}
               onChange={(e) => setStockDelta(parseInt(e.target.value))}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500 font-mono"
             />
             <span className="text-[11px] text-slate-500 mt-1 block">
               Enter positive value to add stock, negative to relieve stock.
             </span>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setIsStockModalOpen(false)}
-              className="px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors btn-press"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 shadow-xs btn-press"
             >
               {loading ? 'Posting...' : 'Post Adjustment'}
             </button>

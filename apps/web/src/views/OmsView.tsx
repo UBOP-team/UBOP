@@ -1,7 +1,6 @@
 import React, { useState } from 'react';
 import {
   Plus,
-  Package,
   Clock,
   Search,
   ShoppingBag,
@@ -99,116 +98,119 @@ export const OmsView: React.FC<OmsViewProps> = ({
     const matchesQuery =
       o.order_number.toLowerCase().includes(searchQuery.toLowerCase()) ||
       (customer && customer.name.toLowerCase().includes(searchQuery.toLowerCase())) ||
-      provider.toLowerCase().includes(searchQuery.toLowerCase());
+      (customer && customer.company && customer.company.toLowerCase().includes(searchQuery.toLowerCase()));
 
     return matchesProvider && matchesStatus && matchesQuery;
   });
-
-  // Calculate Shopify Admin Metrics
-  const ordersTodayCount = orders.length;
-  const totalRevenue = orders.reduce((sum, o) => sum + (o.status !== 'CANCELLED' ? o.total_amount : 0), 0);
-  const pendingCount = orders.filter((o) => o.status === 'PENDING').length;
-  const deliveredCount = orders.filter((o) => o.status === 'DELIVERED').length;
-  const fulfillmentRate = orders.length > 0 ? Math.round((deliveredCount / orders.length) * 100) : 100;
 
   const handleCreateOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
     try {
-      const selectedProd = products.find((p) => p.id === productId);
-      const unitPrice = selectedProd ? selectedProd.price : 100.0;
+      const selectedProduct = products.find((p) => p.id === productId);
+      const unitPrice = selectedProduct?.price || 100;
       await onCreateOrder({
         customer_id: customerId,
-        provider: orderProvider,
+        provider: orderProvider.toUpperCase(),
         items: [
           {
             product_id: productId,
-            quantity: quantity,
+            quantity,
             unit_price: unitPrice,
           },
         ],
       });
       setIsModalOpen(false);
-      toast.success('Order Ingested', `Omnichannel order ingested via ${orderProvider.toUpperCase()}.`);
+      toast.success(
+        'Order Ingested',
+        `Successfully routed through ${orderProvider.toUpperCase()} connector.`
+      );
     } catch {
-      toast.error('Error', 'Failed to place order.');
+      toast.error('Order Failed', 'Could not create order.');
     } finally {
       setLoading(false);
     }
   };
 
-  const handleStatusChange = async (orderId: number, newStatus: string) => {
-    await onUpdateStatus(orderId, newStatus);
-    if (selectedOrder?.id === orderId) {
-      setSelectedOrder({ ...selectedOrder, status: newStatus as any });
-    }
-    toast.success('Fulfillment Advanced', `Order #${orderId} marked as ${newStatus}.`);
-  };
-
-  // 5-Step Fulfillment Stepper for Shopify Admin Order Detail
-  const getFulfillmentStepper = (order: Order): TimelineItem[] => {
-    const currentIdx =
-      order.status === 'CANCELLED'
-        ? -1
-        : order.status === 'DELIVERED'
-        ? 4
-        : order.status === 'SHIPPED'
-        ? 3
-        : order.status === 'CONFIRMED'
-        ? 1
-        : 0;
-
-    const steps = [
-      { id: '1', title: 'Order Created', icon: 'DOC' as const },
-      { id: '2', title: 'Payment Confirmed', icon: 'PAYMENT' as const },
-      { id: '3', title: 'Packed', icon: 'PACKAGE' as const },
-      { id: '4', title: 'Shipped', icon: 'TRUCK' as const },
-      { id: '5', title: 'Delivered', icon: 'CHECK' as const },
-    ];
-
-    return steps.map((s, idx) => {
-      let st: TimelineItem['status'] = 'PENDING';
-      if (order.status === 'CANCELLED') {
-        st = 'FAILED';
-      } else if (idx < currentIdx) {
-        st = 'COMPLETED';
-      } else if (idx === currentIdx) {
-        st = 'IN_PROGRESS';
+  const handleStatusChange = async (orderId: number, status: Order['status']) => {
+    try {
+      await onUpdateStatus(orderId, status);
+      if (selectedOrder && selectedOrder.id === orderId) {
+        setSelectedOrder({ ...selectedOrder, status });
       }
-
-      return {
-        id: s.id,
-        title: s.title,
-        status: st,
-        timestamp: idx <= currentIdx ? 'Verified' : 'Pending',
-        iconType: s.icon,
-      };
-    });
+      toast.success('Status Updated', `Order marked as ${status}`);
+    } catch {
+      toast.error('Update Failed', 'Could not advance fulfillment status.');
+    }
   };
 
-  const getProviderBadge = (provider: string) => {
-    switch (provider) {
+  // Metrics
+  const ordersTodayCount = orders.length;
+  const totalRevenue = orders.reduce((acc, o) => acc + o.total_amount, 0);
+  const pendingCount = orders.filter((o) => o.status === 'PENDING').length;
+  const deliveredCount = orders.filter((o) => o.status === 'DELIVERED').length;
+  const fulfillmentRate = orders.length > 0 ? Math.round((deliveredCount / orders.length) * 100) : 100;
+
+  // Horizontal Stepper for Drawer
+  const getFulfillmentStepper = (order: Order): TimelineItem[] => {
+    const statuses = ['PENDING', 'CONFIRMED', 'SHIPPED', 'DELIVERED'];
+    const currentIdx = statuses.indexOf(order.status);
+
+    return [
+      {
+        id: 'step_1',
+        title: 'Order Created',
+        timestamp: 'Sep 19, 10:15',
+        status: 'COMPLETED',
+        iconType: 'PACKAGE',
+      },
+      {
+        id: 'step_2',
+        title: 'Payment Captured',
+        timestamp: 'Sep 19, 10:16',
+        status: currentIdx >= 1 ? 'COMPLETED' : order.status === 'CANCELLED' ? 'FAILED' : 'IN_PROGRESS',
+        iconType: 'PAYMENT',
+      },
+      {
+        id: 'step_3',
+        title: 'Carrier In-Transit',
+        timestamp: currentIdx >= 2 ? 'Sep 19, 14:00' : 'Pending dispatch',
+        status: currentIdx >= 2 ? 'COMPLETED' : currentIdx === 1 ? 'IN_PROGRESS' : 'PENDING',
+        iconType: 'TRUCK',
+      },
+      {
+        id: 'step_4',
+        title: 'Delivered',
+        timestamp: currentIdx >= 3 ? 'Sep 19, 16:45' : 'Estimated tomorrow',
+        status: currentIdx >= 3 ? 'COMPLETED' : 'PENDING',
+        iconType: 'CHECK',
+      },
+    ];
+  };
+
+  const getProviderBadge = (prov: string) => {
+    switch (prov) {
       case 'SHOPIFY':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono text-[10px] font-semibold">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono text-[10px] font-semibold">
             Shopify
           </span>
         );
       case 'AMAZON':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-amber-500/10 text-amber-400 border border-amber-500/30 font-mono text-[10px] font-semibold">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-amber-50 text-amber-700 border border-amber-200 font-mono text-[10px] font-semibold">
             Amazon
           </span>
         );
       case 'WOOCOMMERCE':
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-purple-500/10 text-purple-400 border border-purple-500/30 font-mono text-[10px] font-semibold">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-purple-50 text-purple-700 border border-purple-200 font-mono text-[10px] font-semibold">
             WooCommerce
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full bg-cyan-500/10 text-cyan-400 border border-cyan-500/30 font-mono text-[10px] font-semibold">
+          <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-mono text-[10px] font-semibold">
             Internal OMS
           </span>
         );
@@ -219,19 +221,19 @@ export const OmsView: React.FC<OmsViewProps> = ({
     switch (payStatus) {
       case 'PAID':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 font-mono text-[10px]">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono text-[10px] font-medium">
             Paid
           </span>
         );
       case 'AUTHORIZED':
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-blue-500/10 text-blue-400 border border-blue-500/20 font-mono text-[10px]">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-sky-50 text-sky-700 border border-sky-200 font-mono text-[10px] font-medium">
             Authorized
           </span>
         );
       default:
         return (
-          <span className="inline-flex items-center gap-1 px-2 py-0.5 rounded-full bg-rose-500/10 text-rose-400 border border-rose-500/20 font-mono text-[10px]">
+          <span className="inline-flex items-center px-2 py-0.5 rounded-full bg-rose-50 text-rose-700 border border-rose-200 font-mono text-[10px] font-medium">
             Refunded
           </span>
         );
@@ -239,26 +241,26 @@ export const OmsView: React.FC<OmsViewProps> = ({
   };
 
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-smooth-fade">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-100 tracking-tight">
+          <h2 className="text-xl font-bold text-slate-900 tracking-tight">
             Order Management System (OMS)
           </h2>
-          <p className="text-xs text-slate-400 mt-1">
-            Shopify Admin layout: Unified omnichannel orders, provider routing, and end-to-end fulfillment.
+          <p className="text-xs text-slate-500 mt-1">
+            Unified omnichannel orders, provider routing, and end-to-end fulfillment.
           </p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition-all shadow-lg shadow-teal-500/10 shrink-0"
+          className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded-lg text-xs transition-all shadow-xs shrink-0 btn-press"
         >
           <Plus className="w-4 h-4" /> Create Omnichannel Order
         </button>
       </div>
 
-      {/* Order Dashboard Metrics (Orders Today, Revenue, Pending Orders, Fulfillment Rate) */}
+      {/* Order Dashboard Metrics */}
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <MetricCard
           title="Orders Today"
@@ -310,31 +312,30 @@ export const OmsView: React.FC<OmsViewProps> = ({
       />
 
       {/* Order Management Table */}
-      <div className="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
-        <div className="p-3.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+      <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs">
+        <div className="p-3.5 bg-slate-50/80 border-b border-slate-200 flex items-center justify-between">
           <div className="flex items-center gap-2">
-            <Package className="w-4 h-4 text-teal-400" />
-            <span className="font-bold text-slate-100 text-xs">All Orders</span>
-            <span className="font-mono text-[10px] text-slate-400 bg-slate-950 px-2 py-0.5 rounded border border-slate-800">
+            <span className="font-bold text-slate-800 text-xs">All Orders</span>
+            <span className="font-mono text-[10px] text-slate-500 bg-white px-2 py-0.5 rounded border border-slate-200 shadow-xs">
               {filteredOrders.length} records
             </span>
           </div>
 
           <div className="relative w-64">
-            <Search className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+            <Search className="w-3.5 h-3.5 text-slate-400 absolute left-3 top-1/2 -translate-y-1/2" />
             <input
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               placeholder="Filter order number or buyer..."
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-8 pr-3 py-1 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500"
+              className="w-full bg-white border border-slate-200 rounded-lg pl-8 pr-3 py-1 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-teal-500 shadow-xs"
             />
           </div>
         </div>
 
         <div className="overflow-x-auto">
           <table className="w-full text-left text-xs border-collapse">
-            <thead className="bg-slate-900/60 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
+            <thead className="bg-slate-50 text-slate-500 uppercase text-[11px] font-semibold border-b border-slate-200">
               <tr>
                 <th className="px-5 py-3.5">Order ID</th>
                 <th className="px-5 py-3.5">Customer</th>
@@ -345,10 +346,10 @@ export const OmsView: React.FC<OmsViewProps> = ({
                 <th className="px-5 py-3.5">Created Date</th>
               </tr>
             </thead>
-            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+            <tbody className="divide-y divide-slate-100 text-slate-700">
               {filteredOrders.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="px-6 py-12 text-center text-slate-500">
+                  <td colSpan={7} className="px-6 py-12 text-center text-slate-400">
                     No orders match your filter criteria.
                   </td>
                 </tr>
@@ -362,17 +363,17 @@ export const OmsView: React.FC<OmsViewProps> = ({
                     <tr
                       key={o.id}
                       onClick={() => setSelectedOrder(o)}
-                      className="hover:bg-slate-900/50 cursor-pointer transition-colors group"
+                      className="hover:bg-slate-50/70 cursor-pointer transition-colors group"
                     >
-                      <td className="px-5 py-3.5 font-mono font-bold text-teal-400 group-hover:underline">
+                      <td className="px-5 py-3.5 font-mono font-bold text-teal-700 group-hover:underline">
                         {o.order_number}
                       </td>
 
                       <td className="px-5 py-3.5">
-                        <div className="font-semibold text-slate-100">
+                        <div className="font-semibold text-slate-900">
                           {customer?.name || `Customer #${o.customer_id}`}
                         </div>
-                        <div className="text-[11px] text-slate-400">
+                        <div className="text-[11px] text-slate-500">
                           {customer?.company || 'Direct Account'}
                         </div>
                       </td>
@@ -381,16 +382,16 @@ export const OmsView: React.FC<OmsViewProps> = ({
 
                       <td className="px-5 py-3.5">
                         <span
-                          className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold ${
+                          className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold ${
                             o.status === 'DELIVERED'
-                              ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                              ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               : o.status === 'SHIPPED'
-                              ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
+                              ? 'bg-sky-50 text-sky-700 border border-sky-200'
                               : o.status === 'CONFIRMED'
-                              ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/30'
+                              ? 'bg-teal-50 text-teal-700 border border-teal-200'
                               : o.status === 'PENDING'
-                              ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                              : 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-rose-50 text-rose-700 border border-rose-200'
                           }`}
                         >
                           {o.status}
@@ -399,7 +400,7 @@ export const OmsView: React.FC<OmsViewProps> = ({
 
                       <td className="px-5 py-3.5">{getPaymentBadge(paymentStatus)}</td>
 
-                      <td className="px-5 py-3.5 font-mono font-bold text-slate-100">
+                      <td className="px-5 py-3.5 font-mono font-bold text-slate-900">
                         ${o.total_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                       </td>
 
@@ -415,7 +416,7 @@ export const OmsView: React.FC<OmsViewProps> = ({
         </div>
       </div>
 
-      {/* Order Detail Slide-over Drawer (Shopify Admin Timeline) */}
+      {/* Order Detail Slide-over Drawer */}
       <Drawer
         isOpen={!!selectedOrder}
         onClose={() => setSelectedOrder(null)}
@@ -426,7 +427,7 @@ export const OmsView: React.FC<OmsViewProps> = ({
         {selectedOrder && (
           <div className="space-y-6 text-xs">
             {/* Summary & Provider Attribution Banner */}
-            <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl flex items-center justify-between">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl flex items-center justify-between">
               <div>
                 <span className="text-[10px] uppercase font-mono text-slate-500 block">
                   Channel Route
@@ -438,7 +439,7 @@ export const OmsView: React.FC<OmsViewProps> = ({
                 <span className="text-[10px] uppercase font-mono text-slate-500 block">
                   Total Paid
                 </span>
-                <span className="text-base font-bold text-emerald-400 font-mono">
+                <span className="text-base font-bold text-emerald-700 font-mono">
                   ${selectedOrder.total_amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </span>
               </div>
@@ -446,44 +447,44 @@ export const OmsView: React.FC<OmsViewProps> = ({
 
             {/* ORDER DETAIL TIMELINE:
                 Order Created -> Payment Confirmed -> Packed -> Shipped -> Delivered */}
-            <div className="p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-3">
-              <span className="font-semibold text-slate-200 block text-xs">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+              <span className="font-semibold text-slate-800 block text-xs">
                 Fulfillment Lifecycle Progress
               </span>
               <Timeline items={getFulfillmentStepper(selectedOrder)} mode="horizontal_stepper" />
             </div>
 
             {/* Advance Fulfillment Quick Actions */}
-            <div className="p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-3">
-              <span className="font-semibold text-slate-200 block text-xs">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-3">
+              <span className="font-semibold text-slate-800 block text-xs">
                 Advance Fulfillment State
               </span>
               <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
                 <button
                   type="button"
                   onClick={() => handleStatusChange(selectedOrder.id, 'CONFIRMED')}
-                  className="px-3 py-2 bg-blue-500/10 hover:bg-blue-500/20 text-blue-400 border border-blue-500/30 rounded-xl text-xs font-semibold transition-colors"
+                  className="px-3 py-2 bg-sky-50 hover:bg-sky-100 text-sky-800 border border-sky-200 rounded-lg text-xs font-semibold transition-colors btn-press"
                 >
                   Confirm Order
                 </button>
                 <button
                   type="button"
                   onClick={() => handleStatusChange(selectedOrder.id, 'SHIPPED')}
-                  className="px-3 py-2 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-xl text-xs font-semibold transition-colors"
+                  className="px-3 py-2 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-lg text-xs font-semibold transition-colors btn-press"
                 >
                   Mark Shipped
                 </button>
                 <button
                   type="button"
                   onClick={() => handleStatusChange(selectedOrder.id, 'DELIVERED')}
-                  className="px-3 py-2 bg-emerald-500/10 hover:bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-semibold transition-colors"
+                  className="px-3 py-2 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 border border-emerald-200 rounded-lg text-xs font-semibold transition-colors btn-press"
                 >
                   Mark Delivered
                 </button>
                 <button
                   type="button"
                   onClick={() => handleStatusChange(selectedOrder.id, 'CANCELLED')}
-                  className="px-3 py-2 bg-rose-500/10 hover:bg-rose-500/20 text-rose-400 border border-rose-500/30 rounded-xl text-xs font-semibold transition-colors"
+                  className="px-3 py-2 bg-rose-50 hover:bg-rose-100 text-rose-800 border border-rose-200 rounded-lg text-xs font-semibold transition-colors btn-press"
                 >
                   Cancel Order
                 </button>
@@ -491,22 +492,22 @@ export const OmsView: React.FC<OmsViewProps> = ({
             </div>
 
             {/* Order Items Table */}
-            <div className="p-4 bg-slate-950/70 border border-slate-800 rounded-2xl space-y-2.5">
-              <span className="font-semibold text-slate-200 block text-xs">Line Items</span>
-              <div className="divide-y divide-slate-800/60">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-2xl space-y-2.5">
+              <span className="font-semibold text-slate-800 block text-xs">Line Items</span>
+              <div className="divide-y divide-slate-200">
                 {selectedOrder.items?.map((item, idx) => {
                   const prod = products.find((p) => p.id === item.product_id);
                   return (
                     <div key={idx} className="py-2 flex items-center justify-between">
                       <div>
-                        <span className="font-semibold text-slate-200">
+                        <span className="font-semibold text-slate-900">
                           {prod?.name || item.product_name || `Product #${item.product_id}`}
                         </span>
                         <div className="text-[11px] text-slate-500 font-mono">
                           Quantity: {item.quantity} × ${item.unit_price}
                         </div>
                       </div>
-                      <span className="font-mono font-bold text-slate-100">
+                      <span className="font-mono font-bold text-slate-900">
                         ${(item.quantity * item.unit_price).toFixed(2)}
                       </span>
                     </div>
@@ -526,11 +527,11 @@ export const OmsView: React.FC<OmsViewProps> = ({
       >
         <form onSubmit={handleCreateOrder} className="space-y-4 text-xs">
           <div>
-            <label className="block text-slate-400 font-medium mb-1">Select Customer Account *</label>
+            <label className="block text-slate-700 font-medium mb-1">Select Customer Account *</label>
             <select
               value={customerId}
               onChange={(e) => setCustomerId(Number(e.target.value))}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500"
             >
               {customers.map((c) => (
                 <option key={c.id} value={c.id}>
@@ -542,11 +543,11 @@ export const OmsView: React.FC<OmsViewProps> = ({
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-400 font-medium mb-1">Catalog Item SKU *</label>
+              <label className="block text-slate-700 font-medium mb-1">Catalog Item SKU *</label>
               <select
                 value={productId}
                 onChange={(e) => setProductId(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500"
               >
                 {products.map((p) => (
                   <option key={p.id} value={p.id}>
@@ -557,24 +558,24 @@ export const OmsView: React.FC<OmsViewProps> = ({
             </div>
 
             <div>
-              <label className="block text-slate-400 font-medium mb-1">Quantity *</label>
+              <label className="block text-slate-700 font-medium mb-1">Quantity *</label>
               <input
                 type="number"
                 min="1"
                 required
                 value={quantity}
                 onChange={(e) => setQuantity(Number(e.target.value))}
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-slate-400 font-medium mb-1">Ingestion Provider Channel</label>
+            <label className="block text-slate-700 font-medium mb-1">Ingestion Provider Channel</label>
             <select
               value={orderProvider}
               onChange={(e) => setOrderProvider(e.target.value)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500 font-mono"
             >
               <option value="shopify">Shopify Storefront (Live Sync)</option>
               <option value="amazon">Amazon Seller Central (FBA)</option>
@@ -583,18 +584,18 @@ export const OmsView: React.FC<OmsViewProps> = ({
             </select>
           </div>
 
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
+          <div className="flex justify-end gap-3 pt-4 border-t border-slate-100">
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors btn-press"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold rounded-lg transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 shadow-xs btn-press"
             >
               {loading ? 'Ingesting...' : 'Ingest Order'}
             </button>
