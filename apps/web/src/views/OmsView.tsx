@@ -251,28 +251,26 @@ export const OmsView: React.FC<OmsViewProps> = ({
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded-lg text-xs transition-all shadow-xs shrink-0 btn-press"
+          className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition-all shadow-xs shrink-0 btn-press active:scale-[0.98]"
         >
-          <Plus className="w-4 h-4" /> Create Omnichannel Order
+          <Plus className="w-3.5 h-3.5" /> Create Omnichannel Order
         </button>
       </div>
 
       {/* Order Dashboard Metrics */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <MetricCard
           title="Orders Today"
           value={ordersTodayCount}
           change={18.4}
           period="vs yesterday"
-          colorScheme="teal"
           sparklineData={[14, 18, 12, 19, 24, ordersTodayCount]}
         />
         <MetricCard
           title="Revenue"
           value={`$${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           change={22.8}
-          period="vs prior 30 days"
-          colorScheme="emerald"
+          period="vs prior month"
           sparklineData={[12000, 15000, 18000, 24000, totalRevenue]}
         />
         <MetricCard
@@ -280,7 +278,6 @@ export const OmsView: React.FC<OmsViewProps> = ({
           value={pendingCount}
           change={-5.0}
           period="fulfillment queue"
-          colorScheme="amber"
         />
         <MetricCard
           title="Fulfillment Rate"
@@ -288,7 +285,7 @@ export const OmsView: React.FC<OmsViewProps> = ({
           change={3.2}
           target="98.5%"
           period="on-time dispatch"
-          colorScheme="blue"
+          sparklineData={[92, 94, 96, fulfillmentRate]}
         />
       </div>
 
@@ -581,14 +578,14 @@ export const OmsView: React.FC<OmsViewProps> = ({
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors btn-press"
+              className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors btn-press text-xs font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 shadow-xs btn-press"
+              className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50 shadow-xs btn-press text-xs"
             >
               {loading ? 'Ingesting...' : 'Ingest Order'}
             </button>

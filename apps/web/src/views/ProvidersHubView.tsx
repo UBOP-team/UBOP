@@ -177,75 +177,71 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
   };
 
   return (
-    <div className="space-y-8 animate-smooth-fade">
-      {/* Top Banner & Quick Metrics */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 relative overflow-hidden shadow-xs">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-[10px] font-mono uppercase font-semibold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-teal-500 animate-pulse" />
-                Integration Provider Layer
-              </span>
-              <span className="text-xs text-slate-400">• Composable Architecture</span>
-            </div>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-              Provider Integration & Capability Hub
-            </h2>
-            <p className="text-xs text-slate-500 mt-1 max-w-2xl leading-relaxed">
-              Decouple business capabilities from technical implementations. Select pre-built connectors
-              from the marketplace or design custom REST adapters with schema mapping.
-            </p>
+    <div className="space-y-6 animate-smooth-fade">
+      {/* Executive Command Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+              Integrations & Connectors
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[11px] font-medium text-slate-600 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {providers.filter((p) => p.status === 'CONNECTED').length} Active Connectors
+            </span>
           </div>
-
-          <div className="flex items-center gap-2.5 shrink-0">
-            <button
-              onClick={() => setIsCustomStudioOpen(true)}
-              className="flex items-center gap-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-semibold px-4 py-2 rounded-lg text-xs transition-colors shadow-xs btn-press"
-            >
-              <Code2 className="w-4 h-4 text-teal-600" />
-              Create Custom Provider
-            </button>
-
-            <button
-              onClick={() => handleOpenConnectWizard()}
-              className="flex items-center gap-1.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded-lg text-xs transition-all shadow-xs btn-press"
-            >
-              <Plus className="w-4 h-4" />
-              Add Capability Provider
-            </button>
-          </div>
+          <p className="text-xs text-slate-500 mt-1">
+            Decoupled adapter layer powering ERP, CRM, and OMS capabilities with zero vendor lock-in.
+          </p>
         </div>
 
-        {/* Live Provider Health Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-100 text-xs">
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3">
-            <div className="text-[11px] text-slate-500 uppercase font-medium">Connected Providers</div>
-            <div className="text-lg font-bold text-slate-900 mt-0.5">
-              {providers.filter((p) => p.status === 'CONNECTED').length} / {providers.length}
-            </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setIsCustomStudioOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium rounded-lg text-xs transition-colors shadow-xs btn-press"
+          >
+            <Code2 className="w-3.5 h-3.5 text-slate-500" />
+            Custom Adapter Studio
+          </button>
+
+          <button
+            onClick={() => handleOpenConnectWizard()}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg text-xs transition-colors shadow-xs btn-press"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Connect Provider
+          </button>
+        </div>
+      </div>
+
+      {/* Provider Health Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-xs">
+          <div className="text-[11px] text-slate-500 uppercase font-medium tracking-wide">Connected Providers</div>
+          <div className="text-lg font-semibold text-slate-900 mt-1 font-mono">
+            {providers.filter((p) => p.status === 'CONNECTED').length} <span className="text-xs font-sans text-slate-400 font-normal">/ {providers.length} configured</span>
           </div>
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3">
-            <div className="text-[11px] text-slate-500 uppercase font-medium">Handshake Health</div>
-            <div className="text-lg font-bold text-emerald-700 mt-0.5 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4 text-emerald-600" /> 100% Operational
-            </div>
+        </div>
+        <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-xs">
+          <div className="text-[11px] text-slate-500 uppercase font-medium tracking-wide">Handshake Health</div>
+          <div className="text-lg font-semibold text-emerald-700 mt-1 flex items-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> 100% Operational
           </div>
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3">
-            <div className="text-[11px] text-slate-500 uppercase font-medium">Avg API Latency</div>
-            <div className="text-lg font-bold text-teal-700 font-mono mt-0.5">24ms</div>
-          </div>
-          <div className="bg-slate-50 border border-slate-200/80 rounded-xl p-3">
-            <div className="text-[11px] text-slate-500 uppercase font-medium">Decoupled Isolation</div>
-            <div className="text-lg font-bold text-slate-900 mt-0.5">Zero Lock-In</div>
-          </div>
+        </div>
+        <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-xs">
+          <div className="text-[11px] text-slate-500 uppercase font-medium tracking-wide">Avg API Latency</div>
+          <div className="text-lg font-semibold text-slate-900 font-mono mt-1">24ms</div>
+        </div>
+        <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-xs">
+          <div className="text-[11px] text-slate-500 uppercase font-medium tracking-wide">Decoupled Isolation</div>
+          <div className="text-lg font-semibold text-slate-900 mt-1">Zero Lock-In</div>
         </div>
       </div>
 
       {/* CORE UX SECTION: "Business Capability + Provider Selection" */}
       <div className="space-y-4">
         <div>
-          <h3 className="text-base font-bold text-slate-900">
+          <h3 className="text-sm font-semibold text-slate-900">
             Business Capability Selection Matrix
           </h3>
           <p className="text-xs text-slate-500 mt-0.5">
@@ -259,7 +255,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
             return (
               <div
                 key={cap.capabilityId}
-                className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-2xl p-5 flex flex-col justify-between transition-all duration-200 shadow-xs hover:shadow-md card-hover"
+                className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl p-4.5 flex flex-col justify-between transition-all duration-200 shadow-xs hover:shadow-md card-hover"
               >
                 <div>
                   <div className="flex items-center justify-between mb-2">
@@ -285,7 +281,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                     onChange={(e) =>
                       handleSwitchCapabilityProvider(cap.capabilityId, e.target.value)
                     }
-                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-semibold text-slate-800 focus:outline-none focus:border-teal-500 font-mono"
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-slate-400 font-mono"
                   >
                     {cap.availableProviderIds.map((pId) => (
                       <option key={pId} value={pId}>
@@ -299,7 +295,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                     <button
                       type="button"
                       onClick={() => handleOpenConnectWizard()}
-                      className="text-teal-700 hover:text-teal-800 font-sans font-semibold"
+                      className="text-slate-700 hover:text-slate-900 font-sans font-medium hover:underline"
                     >
                       Change Setup →
                     </button>
@@ -315,7 +311,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
       <div className="space-y-4 pt-2">
         <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
           <div>
-            <h3 className="text-base font-bold text-slate-900">
+            <h3 className="text-sm font-semibold text-slate-900">
               Provider Adapter Marketplace & Directory
             </h3>
             <p className="text-xs text-slate-500 mt-0.5">
@@ -328,7 +324,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search providers (e.g. Shopify, Stripe)..."
-            className="w-full sm:w-64 bg-white border border-slate-200 rounded-lg px-3.5 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-teal-500 shadow-xs"
+            className="w-full sm:w-64 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 shadow-xs"
           />
         </div>
 
@@ -342,15 +338,15 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                 onClick={() => setActiveCategory(cat.id)}
                 className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap btn-press ${
                   active
-                    ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs font-semibold'
-                    : 'bg-white text-slate-600 hover:text-slate-800 hover:bg-slate-50 border border-slate-200'
+                    ? 'bg-slate-900 text-white shadow-xs font-semibold'
+                    : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200'
                 }`}
               >
                 <span>{cat.label}</span>
                 <span
                   className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
                     active
-                      ? 'bg-teal-200/60 text-teal-900 font-bold'
+                      ? 'bg-slate-800 text-slate-200 font-semibold'
                       : 'bg-slate-100 text-slate-500'
                   }`}
                 >
@@ -445,7 +441,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                   onChange={(e) =>
                     setSelectedProvider({ ...selectedProvider, apiKey: e.target.value })
                   }
-                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono text-xs focus:outline-none focus:border-teal-500"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono text-xs focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400"
                 />
               </div>
               <p className="text-[11px] text-slate-500 mt-1">
@@ -463,7 +459,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                   type="text"
                   readOnly
                   value={`https://api.ubop.internal/api/v1/webhooks/${selectedProvider.id}`}
-                  className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-teal-700 font-mono text-xs focus:outline-none"
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700 font-mono text-xs focus:outline-none"
                 />
                 <button
                   type="button"
@@ -532,7 +528,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                 type="button"
                 onClick={() => handleTestConnection(selectedProvider)}
                 disabled={testingId === selectedProvider.id}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-teal-700 rounded-lg text-xs font-semibold transition-colors shadow-xs btn-press"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors shadow-xs btn-press"
               >
                 <RefreshCw
                   className={`w-3.5 h-3.5 ${
@@ -554,7 +550,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg shadow-xs transition-colors btn-press"
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-xs transition-colors btn-press"
               >
                 Save Settings
               </button>

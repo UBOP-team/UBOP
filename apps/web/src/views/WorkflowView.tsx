@@ -118,61 +118,61 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <div className="flex items-center gap-2">
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
-              Workflow Builder & Event Automation
-            </h2>
-            <span className="font-mono text-[10px] text-teal-800 bg-teal-50 px-2 py-0.5 rounded border border-teal-200 font-semibold">
-              {rules.length} Deployed Recipes
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+              Workflows & Automation
+            </h1>
+            <span className="font-mono text-[11px] text-slate-600 bg-slate-100 px-2 py-0.5 rounded-md border border-slate-200 font-medium">
+              {rules.length} Deployed Pipelines
             </span>
           </div>
           <p className="text-xs text-slate-500 mt-1">
-            Drag-and-drop trigger-condition-action pipelines with event-driven execution.
+            Trigger-condition-action event graphs executed asynchronously across modules.
           </p>
         </div>
 
-        <div className="flex items-center gap-2.5">
+        <div className="flex items-center gap-2">
           <button
             onClick={handleTestTrigger}
             disabled={isExecuting}
-            className="flex items-center gap-1.5 px-3.5 py-2 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-semibold transition-colors shadow-xs btn-press"
+            className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 text-xs font-medium transition-colors shadow-xs btn-press"
           >
-            <Play className={`w-3.5 h-3.5 fill-current text-teal-600 ${isExecuting ? 'animate-spin' : ''}`} />
-            {isExecuting ? 'Evaluating...' : 'Test Full Workflow'}
+            <Play className={`w-3.5 h-3.5 fill-current text-slate-500 ${isExecuting ? 'animate-spin' : ''}`} />
+            {isExecuting ? 'Evaluating...' : 'Test Execution'}
           </button>
 
           <button
             onClick={() => setIsModalOpen(true)}
-            className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded-lg text-xs transition-all shadow-xs shrink-0 btn-press"
+            className="flex items-center gap-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition-colors shadow-xs shrink-0 btn-press"
           >
-            <Plus className="w-4 h-4" /> Add Automation
+            <Plus className="w-3.5 h-3.5" /> Add Automation
           </button>
         </div>
       </div>
 
       {/* Tabs */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2.5">
+      <div className="flex items-center gap-1.5 border-b border-slate-200 pb-2.5">
         <button
           onClick={() => setActiveTab('CANVAS')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-press ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all btn-press ${
             activeTab === 'CANVAS'
-              ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              ? 'bg-slate-900 text-white shadow-xs font-semibold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'
           }`}
         >
-          <Zap className="w-4 h-4" />
+          <Zap className="w-3.5 h-3.5" />
           Visual Flow Canvas
         </button>
 
         <button
           onClick={() => setActiveTab('HISTORY')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-press ${
+          className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs transition-all btn-press ${
             activeTab === 'HISTORY'
-              ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs'
-              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
+              ? 'bg-slate-900 text-white shadow-xs font-semibold'
+              : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100 font-medium'
           }`}
         >
-          <History className="w-4 h-4" />
+          <History className="w-3.5 h-3.5" />
           Execution Logs & Telemetry
         </button>
       </div>
@@ -218,8 +218,8 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
           {/* Right: Step Configuration Panel */}
           <div className="lg:col-span-4 bg-white border border-slate-200/90 rounded-2xl p-5 space-y-4 text-xs shadow-xs">
             <div className="flex items-center justify-between pb-3 border-b border-slate-100">
-              <h3 className="font-bold text-slate-900">Step Inspector</h3>
-              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-teal-50 text-teal-800 border border-teal-200 font-semibold">
+              <h3 className="font-semibold text-slate-900">Step Inspector</h3>
+              <span className="text-[10px] font-mono uppercase px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200 font-semibold">
                 {selectedNode.type}
               </span>
             </div>
@@ -231,7 +231,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
                   type="text"
                   value={selectedNode.title}
                   onChange={(e) => handleUpdateSelectedNode('title', e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500 text-xs font-medium"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 text-xs font-medium"
                 />
               </div>
 
@@ -241,7 +241,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
                   type="text"
                   value={selectedNode.subtitle}
                   onChange={(e) => handleUpdateSelectedNode('subtitle', e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500 text-xs"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 text-xs"
                 />
               </div>
 
@@ -253,7 +253,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
                   rows={4}
                   value={selectedNode.configSummary || ''}
                   onChange={(e) => handleUpdateSelectedNode('configSummary', e.target.value)}
-                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 font-mono text-slate-800 focus:outline-none focus:border-teal-500 text-xs leading-relaxed"
+                  className="w-full bg-slate-50 border border-slate-200 rounded-lg p-3 font-mono text-slate-800 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 text-xs leading-relaxed"
                 />
                 <span className="text-[10px] text-slate-400 mt-1 block">
                   JSON / Python Event Expression evaluated dynamically at runtime.
@@ -268,7 +268,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
                 <input
                   type="checkbox"
                   defaultChecked
-                  className="w-4 h-4 accent-teal-600 cursor-pointer"
+                  className="w-4 h-4 accent-slate-900 cursor-pointer"
                 />
               </div>
             </div>
@@ -289,7 +289,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
                 onClick={() =>
                   toast.success('Step Persisted', 'Configuration saved to automation pipeline.')
                 }
-                className="flex items-center gap-1.5 px-4 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg shadow-xs transition-colors text-xs btn-press"
+                className="flex items-center gap-1.5 px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-xs transition-colors text-xs btn-press"
               >
                 <Save className="w-3.5 h-3.5" /> Save Node
               </button>
@@ -361,7 +361,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
               value={ruleForm.name}
               onChange={(e) => setRuleForm({ ...ruleForm, name: e.target.value })}
               placeholder="e.g. VIP Order Telegram Dispatch"
-              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500"
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400"
             />
           </div>
 
@@ -373,7 +373,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
               value={ruleForm.event_pattern}
               onChange={(e) => setRuleForm({ ...ruleForm, event_pattern: e.target.value })}
               placeholder="e.g. order.created or inventory.low"
-              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500 font-mono"
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 font-mono"
             />
           </div>
 
@@ -382,7 +382,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
             <select
               value={ruleForm.action_type}
               onChange={(e) => setRuleForm({ ...ruleForm, action_type: e.target.value })}
-              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500"
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-slate-400"
             >
               <option value="NOTIFY">NOTIFY (Channel Webhook / Comms)</option>
               <option value="INTEGRATION_SYNC">INTEGRATION_SYNC (Trigger Provider Ingestion)</option>
@@ -396,7 +396,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
               rows={3}
               value={ruleForm.action_payload}
               onChange={(e) => setRuleForm({ ...ruleForm, action_payload: e.target.value })}
-              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-teal-500 font-mono"
+              className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 font-mono"
             />
           </div>
 
@@ -411,7 +411,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 shadow-xs btn-press"
+              className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50 shadow-xs btn-press"
             >
               {loading ? 'Registering...' : 'Deploy Rule'}
             </button>

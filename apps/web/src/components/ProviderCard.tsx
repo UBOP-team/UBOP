@@ -65,7 +65,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
         </div>
 
         <div className="flex items-center gap-2">
-          <h3 className="text-sm font-bold text-slate-900 group-hover:text-teal-700 transition-colors">
+          <h3 className="text-sm font-semibold text-slate-900 group-hover:text-slate-800 transition-colors">
             {provider.name}
           </h3>
           <span className="text-[10px] font-mono text-slate-400 uppercase">
@@ -81,7 +81,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
         <div className="mt-3.5 space-y-1.5 pt-3 border-t border-slate-100">
           {capabilities.map((cap, i) => (
             <div key={i} className="flex items-center gap-1.5 text-[11px] text-slate-600">
-              <Check className="w-3.5 h-3.5 text-teal-600 shrink-0" />
+              <Check className="w-3.5 h-3.5 text-slate-500 shrink-0" />
               <span>{cap}</span>
             </div>
           ))}
@@ -102,7 +102,7 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
               disabled={isTesting}
               className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-lg text-xs font-medium transition-colors btn-press"
             >
-              <Radio className={`w-3.5 h-3.5 text-teal-600 ${isTesting ? 'animate-pulse' : ''}`} />
+              <Radio className={`w-3.5 h-3.5 text-slate-500 ${isTesting ? 'animate-pulse' : ''}`} />
               {isTesting ? 'Pinging...' : 'Test Ping'}
             </button>
           )}
@@ -110,14 +110,14 @@ export const ProviderCard: React.FC<ProviderCardProps> = ({
           {isConnected ? (
             <button
               onClick={() => onConfigure(provider)}
-              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-teal-50 hover:bg-teal-100 text-teal-800 border border-teal-200 rounded-lg text-xs font-semibold transition-colors btn-press"
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 text-slate-700 border border-slate-200 rounded-lg text-xs font-medium transition-colors shadow-xs btn-press"
             >
               <Sliders className="w-3.5 h-3.5" /> Configure
             </button>
           ) : (
             <button
               onClick={() => (onConnect ? onConnect(provider) : onConfigure(provider))}
-              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg text-xs transition-colors shadow-xs btn-press"
+              className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg text-xs transition-colors shadow-xs btn-press"
             >
               <Zap className="w-3.5 h-3.5 fill-current" /> Connect
             </button>

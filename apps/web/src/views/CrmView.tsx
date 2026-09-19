@@ -155,20 +155,19 @@ export const CrmView: React.FC<CrmViewProps> = ({
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded-lg text-xs transition-all shadow-xs shrink-0 btn-press"
+          className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition-all shadow-xs shrink-0 btn-press active:scale-[0.98]"
         >
-          <Plus className="w-4 h-4" /> Add Customer
+          <Plus className="w-3.5 h-3.5" /> Add Customer
         </button>
       </div>
 
       {/* CRM Dashboard Cards */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
         <MetricCard
           title="Total Customers"
           value={customers.length}
           change={14.2}
           period="vs prior month"
-          colorScheme="teal"
           sparklineData={[12, 14, 18, 22, 25, 29, customers.length]}
         />
         <MetricCard
@@ -176,7 +175,6 @@ export const CrmView: React.FC<CrmViewProps> = ({
           value={leadsCount || 12}
           change={28.5}
           period="vs prior 30 days"
-          colorScheme="blue"
           sparklineData={[5, 8, 7, 10, 14, 18, 22]}
         />
         <MetricCard
@@ -185,14 +183,13 @@ export const CrmView: React.FC<CrmViewProps> = ({
           change={4.1}
           target="70.0%"
           period="lead to customer"
-          colorScheme="emerald"
+          sparklineData={[60, 62, 65, 68]}
         />
         <MetricCard
           title="Revenue Pipeline"
           value="$482,500"
           change={19.8}
-          period="active opportunities"
-          colorScheme="indigo"
+          period="active deals"
           sparklineData={[140, 180, 220, 310, 390, 482]}
         />
       </div>
@@ -205,9 +202,9 @@ export const CrmView: React.FC<CrmViewProps> = ({
             <button
               key={tab}
               onClick={() => setStatusFilter(tab)}
-              className={`px-3 py-1.5 rounded-lg text-xs font-semibold transition-all btn-press ${
+              className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all btn-press ${
                 statusFilter === tab
-                  ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs'
+                  ? 'bg-slate-900 text-white font-semibold shadow-xs'
                   : 'text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-transparent'
               }`}
             >
@@ -610,14 +607,14 @@ export const CrmView: React.FC<CrmViewProps> = ({
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors btn-press"
+              className="px-3.5 py-1.5 rounded-lg text-slate-600 hover:text-slate-900 hover:bg-slate-100 transition-colors btn-press text-xs font-medium"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg transition-colors disabled:opacity-50 shadow-xs btn-press"
+              className="px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg transition-colors disabled:opacity-50 shadow-xs btn-press text-xs"
             >
               {loading ? 'Creating...' : 'Save Account'}
             </button>

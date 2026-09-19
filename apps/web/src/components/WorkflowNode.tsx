@@ -66,7 +66,7 @@ export const WorkflowNode: React.FC<WorkflowNodeProps> = ({
         onClick={() => onSelect && onSelect(node)}
         className={`w-80 bg-white border rounded-2xl p-4 cursor-pointer transition-all duration-200 shadow-xs hover:shadow-md card-hover relative ${
           isSelected
-            ? 'border-teal-500 ring-2 ring-teal-200 shadow-sm'
+            ? 'border-slate-900 ring-2 ring-slate-900/10 shadow-sm'
             : 'border-slate-200/90 hover:border-slate-300'
         }`}
       >
@@ -109,12 +109,12 @@ export const WorkflowNode: React.FC<WorkflowNodeProps> = ({
         </div>
 
         {/* Title and description */}
-        <h4 className="text-sm font-bold text-slate-900">{node.title}</h4>
+        <h4 className="text-sm font-semibold text-slate-900">{node.title}</h4>
         <p className="text-xs text-slate-500 mt-0.5 leading-snug">{node.subtitle}</p>
 
         {/* Payload / config pill */}
         {node.configSummary && (
-          <div className="mt-3 p-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[11px] text-teal-700 truncate">
+          <div className="mt-3 p-2 bg-slate-50 border border-slate-200 rounded-xl font-mono text-[11px] text-slate-700 truncate">
             {node.configSummary}
           </div>
         )}
@@ -132,7 +132,7 @@ export const WorkflowNode: React.FC<WorkflowNodeProps> = ({
                 e.stopPropagation();
                 onTest(node);
               }}
-              className="text-teal-700 hover:text-teal-800 font-semibold flex items-center gap-1"
+              className="text-slate-700 hover:text-slate-900 font-medium flex items-center gap-1 hover:underline"
             >
               <Play className="w-3 h-3 fill-current" /> Test Step
             </button>
