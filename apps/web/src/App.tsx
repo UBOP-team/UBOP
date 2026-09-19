@@ -8,7 +8,9 @@ import { OmsView } from './views/OmsView';
 import { ProvidersHubView } from './views/ProvidersHubView';
 import { WorkflowView } from './views/WorkflowView';
 import { SettingsView } from './views/SettingsView';
+import { BiView } from './views/BiView';
 import { ToastProvider } from './components/Toast';
+import { CommandPalette } from './components/CommandPalette';
 import {
   Customer,
   Product,
@@ -23,6 +25,18 @@ import {
 const MainApp: React.FC = () => {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [loading, setLoading] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   // KPIs
   const [kpis, setKpis] = useState<KpiSummary>({
@@ -499,26 +513,28 @@ const MainApp: React.FC = () => {
   const getTabTitle = () => {
     switch (currentTab) {
       case 'dashboard':
-        return 'Executive Overview & Analytics';
+        return 'Command Center: Real-Time Executive Operations';
       case 'crm':
-        return 'Customer Relationship (CRM)';
+        return 'CRM: Customer 360 & Pipeline Management';
       case 'erp':
-        return 'ERP, Master Catalog & Warehousing';
+        return 'ERP: Master Inventory & Procurement';
       case 'oms':
-        return 'Order Management & Fulfillment';
+        return 'OMS: Order Orchestration & Fulfillment';
+      case 'bi':
+        return 'BI: Business Intelligence & Telemetry';
       case 'providers':
         return 'Integrations & Provider Ecosystem';
       case 'workflow':
-        return 'Workflow & Event Automations Engine';
+        return 'Workflow & Event Automation Engine';
       case 'settings':
-        return 'Platform Architecture & Topology';
+        return 'Platform Administration & Topology';
       default:
         return 'UBOP Platform';
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-900 text-slate-100 antialiased selection:bg-teal-500 selection:text-slate-950">
+    <div className="flex min-h-screen bg-slate-50 text-slate-900 antialiased selection:bg-teal-500 selection:text-white">
       {/* Sidebar navigation */}
       <Sidebar
         currentTab={currentTab}
@@ -528,7 +544,19 @@ const MainApp: React.FC = () => {
 
       {/* Main content body */}
       <div className="flex-1 flex flex-col min-w-0">
-        <Header title={getTabTitle()} onRefresh={refreshData} loading={loading} />
+        <Header
+          title={getTabTitle()}
+          onRefresh={refreshData}
+          loading={loading}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        />
+
+        {/* Command Palette */}
+        <CommandPalette
+          isOpen={isCommandPaletteOpen}
+          onClose={() => setIsCommandPaletteOpen(false)}
+          onNavigate={(tab) => setCurrentTab(tab)}
+        />
 
         <main className="flex-1 p-8 overflow-y-auto">
           {currentTab === 'dashboard' && (
@@ -564,6 +592,16 @@ const MainApp: React.FC = () => {
               products={products}
               onCreateOrder={handleCreateOrder}
               onUpdateStatus={handleUpdateOrderStatus}
+            />
+          )}
+
+          {currentTab === 'bi' && (
+            <BiView
+              kpis={kpis}
+              orders={orders}
+              customers={customers}
+              products={products}
+              inventory={inventory}
             />
           )}
 

@@ -1,29 +1,33 @@
 import React, { useState } from 'react';
 import {
-  CreditCard,
-  MessageSquare,
-  Truck,
-  Users,
   Code2,
   CheckCircle2,
-  Sliders,
   Plus,
-  Radio,
   Copy,
-  Zap,
-  ShieldCheck,
   Check,
   RefreshCw,
+  CheckCircle,
 } from 'lucide-react';
-import { IntegrationProvider, ProviderCategory } from '../types';
-import { Modal } from '../components/Modal';
+import { IntegrationProvider } from '../types';
 import { Drawer } from '../components/Drawer';
 import { useToast } from '../components/Toast';
+import { IntegrationWizard } from '../components/IntegrationWizard';
+import { CustomProviderStudio } from '../components/CustomProviderStudio';
+import { ProviderCard } from '../components/ProviderCard';
 
 interface ProvidersHubViewProps {
   providers: IntegrationProvider[];
   onUpdateProvider: (updated: IntegrationProvider) => void;
   onAddCustomProvider: (newProvider: IntegrationProvider) => void;
+}
+
+export interface BusinessCapabilityBinding {
+  capabilityId: string;
+  name: string;
+  module: 'OMS' | 'CRM' | 'ERP' | 'BI' | 'WORKFLOW';
+  description: string;
+  activeProviderId: string;
+  availableProviderIds: string[];
 }
 
 export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
@@ -35,28 +39,65 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
   const [selectedProvider, setSelectedProvider] = useState<IntegrationProvider | null>(null);
-  const [isCustomModalOpen, setIsCustomModalOpen] = useState(false);
   const [testingId, setTestingId] = useState<string | null>(null);
   const [copiedField, setCopiedField] = useState<string | null>(null);
 
-  // Form for Custom Provider
-  const [customForm, setCustomForm] = useState({
-    name: '',
-    category: 'CUSTOM' as ProviderCategory,
-    description: '',
-    webhookUrl: '',
-    apiKey: '',
-    environment: 'SANDBOX' as 'SANDBOX' | 'PRODUCTION',
-    customHeaders: '{"X-UBOP-Source": "modular-monolith"}',
-  });
+  // Modals / Wizards
+  const [isWizardOpen, setIsWizardOpen] = useState(false);
+  const [wizardTargetProvider, setWizardTargetProvider] = useState<IntegrationProvider | null>(null);
+  const [isCustomStudioOpen, setIsCustomStudioOpen] = useState(false);
+
+  // Business Capability Bindings ("Business Capability + Provider Selection")
+  const [capabilities, setCapabilities] = useState<BusinessCapabilityBinding[]>([
+    {
+      capabilityId: 'order_management',
+      name: 'Order Management Capability',
+      module: 'OMS',
+      description: 'Omnichannel order ingestion, status state-machine, and fulfillment sync.',
+      activeProviderId: 'shopify',
+      availableProviderIds: ['shopify', 'amazon', 'internal_oms', 'custom_wms'],
+    },
+    {
+      capabilityId: 'customer_data',
+      name: 'Customer Data Platform (CDP)',
+      module: 'CRM',
+      description: 'Unified customer profiles, activity timelines, and contact history.',
+      activeProviderId: 'internal_crm',
+      availableProviderIds: ['internal_crm', 'salesforce', 'hubspot'],
+    },
+    {
+      capabilityId: 'inventory_warehousing',
+      name: 'Warehouse & Inventory Control',
+      module: 'ERP',
+      description: 'Stock on hand, bin reservations, ATP calculation, and replenishment.',
+      activeProviderId: 'internal_erp',
+      availableProviderIds: ['internal_erp', 'sap_fiori', 'custom_wms'],
+    },
+    {
+      capabilityId: 'payment_processing',
+      name: 'Payment Processing & Escrow',
+      module: 'OMS',
+      description: 'Credit card capture, settlement, refunds, and fraud verification.',
+      activeProviderId: 'stripe',
+      availableProviderIds: ['stripe', 'paypal', 'internal_mock_pay'],
+    },
+    {
+      capabilityId: 'event_notification',
+      name: 'Operations Dispatch & Alerts',
+      module: 'WORKFLOW',
+      description: 'Real-time alert routing, incident webhooks, and SMS dispatch.',
+      activeProviderId: 'slack',
+      availableProviderIds: ['slack', 'twilio', 'internal_alerts'],
+    },
+  ]);
 
   const categories = [
-    { id: 'ALL', label: 'All Providers', icon: Zap },
-    { id: 'PAYMENTS', label: 'Payment Gateways', icon: CreditCard },
-    { id: 'COMMUNICATIONS', label: 'Comms & Alerts', icon: MessageSquare },
-    { id: 'LOGISTICS', label: 'Shipping & Logistics', icon: Truck },
-    { id: 'CRM', label: 'CRM & Marketing', icon: Users },
-    { id: 'CUSTOM', label: 'Custom Adapters', icon: Code2 },
+    { id: 'ALL', label: 'All Providers', count: providers.length },
+    { id: 'PAYMENTS', label: 'Payment Gateways', count: providers.filter((p) => p.category === 'PAYMENTS').length },
+    { id: 'COMMUNICATIONS', label: 'Comms & Alerts', count: providers.filter((p) => p.category === 'COMMUNICATIONS').length },
+    { id: 'LOGISTICS', label: 'Shipping & Logistics', count: providers.filter((p) => p.category === 'LOGISTICS').length },
+    { id: 'CRM', label: 'CRM & Marketing', count: providers.filter((p) => p.category === 'CRM').length },
+    { id: 'CUSTOM', label: 'Custom Adapters', count: providers.filter((p) => p.category === 'CUSTOM').length },
   ];
 
   const filteredProviders = providers.filter((p) => {
@@ -74,26 +115,41 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
     setTimeout(() => setCopiedField(null), 2000);
   };
 
-  const handleTestConnection = (provider: IntegrationProvider) => {
+  const handleTestConnection = async (provider: IntegrationProvider) => {
     setTestingId(provider.id);
-    setTimeout(() => {
-      setTestingId(null);
-      const simulatedLatency = Math.floor(Math.random() * 30) + 15;
-      const updated: IntegrationProvider = {
-        ...provider,
-        status: 'CONNECTED',
-        latencyMs: simulatedLatency,
-        lastTested: 'Just now',
-      };
-      onUpdateProvider(updated);
-      if (selectedProvider?.id === provider.id) {
-        setSelectedProvider(updated);
+    try {
+      const res = await fetch(`/api/v1/providers/ping/${provider.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (res.ok) {
+        const pingResult = await res.json();
+        const latency = pingResult.latency_ms || 18;
+        const updated: IntegrationProvider = {
+          ...provider,
+          status: 'CONNECTED',
+          latencyMs: latency,
+          lastTested: 'Just now',
+        };
+        onUpdateProvider(updated);
+        if (selectedProvider?.id === provider.id) {
+          setSelectedProvider(updated);
+        }
+        toast.success(
+          `${provider.name} Ping Passed`,
+          `${pingResult.message} (${latency}ms roundtrip)`
+        );
+        return;
       }
-      toast.success(
-        `${provider.name} Connected`,
-        `Handshake successful! Response latency: ${simulatedLatency}ms.`
-      );
-    }, 800);
+
+      const err = await res.json().catch(() => ({ detail: 'Ping error' }));
+      toast.error(`${provider.name} Ping Failed`, err.detail || 'Connection handshake failed.');
+    } catch (err: any) {
+      toast.error(`${provider.name} Unreachable`, err.message || 'Network error.');
+    } finally {
+      setTestingId(null);
+    }
   };
 
   const handleToggleAutoSync = (provider: IntegrationProvider) => {
@@ -117,205 +173,218 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
     setSelectedProvider(null);
   };
 
-  const handleCreateCustom = (e: React.FormEvent) => {
-    e.preventDefault();
-    const newProv: IntegrationProvider = {
-      id: `custom_${Date.now()}`,
-      name: customForm.name,
-      category: customForm.category,
-      description: customForm.description || 'Custom user-defined HTTP/Webhook adapter.',
-      status: 'CONFIGURED',
-      environment: customForm.environment,
-      iconType: 'Code2',
-      accentColor: 'from-cyan-500 to-teal-500',
-      apiKey: customForm.apiKey,
-      webhookUrl: customForm.webhookUrl,
-      customHeaders: customForm.customHeaders,
-      autoSync: true,
-      latencyMs: 25,
-      lastTested: 'Configured',
-    };
-    onAddCustomProvider(newProv);
-    setIsCustomModalOpen(false);
-    setCustomForm({
-      name: '',
-      category: 'CUSTOM',
-      description: '',
-      webhookUrl: '',
-      apiKey: '',
-      environment: 'SANDBOX',
-      customHeaders: '{"X-UBOP-Source": "modular-monolith"}',
-    });
-    toast.success('Custom Provider Created', `${newProv.name} adapter registered successfully.`);
+  const handleSwitchCapabilityProvider = (capabilityId: string, newProviderId: string) => {
+    setCapabilities((prev) =>
+      prev.map((cap) =>
+        cap.capabilityId === capabilityId ? { ...cap, activeProviderId: newProviderId } : cap
+      )
+    );
+    const cap = capabilities.find((c) => c.capabilityId === capabilityId);
+    toast.success(
+      'Capability Provider Switched',
+      `${cap?.name} is now powered by ${newProviderId.toUpperCase()}.`
+    );
+  };
+
+  const handleOpenConnectWizard = (provider?: IntegrationProvider) => {
+    setWizardTargetProvider(provider || null);
+    setIsWizardOpen(true);
   };
 
   return (
-    <div className="space-y-6">
-      {/* Top Banner & Quick Metrics */}
-      <div className="bg-gradient-to-r from-slate-900 via-slate-900/90 to-teal-950/40 border border-slate-800/80 rounded-2xl p-6 relative overflow-hidden">
-        <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
-          <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[10px] font-mono uppercase font-semibold flex items-center gap-1.5">
-                <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
-                Provider Adapter Layer
-              </span>
-              <span className="text-xs text-slate-500">• In-memory & Distributed Handlers</span>
-            </div>
-            <h2 className="text-2xl font-bold text-slate-100 tracking-tight">
-              Integrations & Provider Ecosystem
-            </h2>
-            <p className="text-xs text-slate-400 mt-1 max-w-2xl">
-              Connect payment gateways, fulfillment couriers, customer engagement channels, or define
-              your own custom adapters with decoupled contracts.
-            </p>
+    <div className="space-y-6 animate-smooth-fade">
+      {/* Executive Command Header */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <div className="flex items-center gap-2.5">
+            <h1 className="text-xl font-semibold text-slate-900 tracking-tight">
+              Integrations & Connectors
+            </h1>
+            <span className="inline-flex items-center gap-1.5 px-2 py-0.5 rounded-md bg-slate-100 border border-slate-200 text-[11px] font-medium text-slate-600 font-mono">
+              <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
+              {providers.filter((p) => p.status === 'CONNECTED').length} Active Connectors
+            </span>
           </div>
-
-          <button
-            onClick={() => setIsCustomModalOpen(true)}
-            className="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-semibold px-4 py-2.5 rounded-xl text-xs transition-all shadow-lg shadow-teal-500/20 shrink-0"
-          >
-            <Plus className="w-4 h-4" /> Add Custom Provider
-          </button>
+          <p className="text-xs text-slate-500 mt-1">
+            Decoupled adapter layer powering ERP, CRM, and OMS capabilities with zero vendor lock-in.
+          </p>
         </div>
 
-        {/* Live Provider Health Bar */}
-        <div className="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-6 pt-5 border-t border-slate-800/80">
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
-            <div className="text-[11px] text-slate-400 uppercase font-medium">Connected Providers</div>
-            <div className="text-lg font-bold text-slate-100 mt-0.5">
-              {providers.filter((p) => p.status === 'CONNECTED').length} / {providers.length}
-            </div>
-          </div>
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
-            <div className="text-[11px] text-slate-400 uppercase font-medium">Handshake Health</div>
-            <div className="text-lg font-bold text-emerald-400 mt-0.5 flex items-center gap-1.5">
-              <CheckCircle2 className="w-4 h-4" /> 100% Operational
-            </div>
-          </div>
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
-            <div className="text-[11px] text-slate-400 uppercase font-medium">Avg API Latency</div>
-            <div className="text-lg font-bold text-teal-400 font-mono mt-0.5">24ms</div>
-          </div>
-          <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3">
-            <div className="text-[11px] text-slate-400 uppercase font-medium">Decoupled Contracts</div>
-            <div className="text-lg font-bold text-cyan-400 mt-0.5">Strict Isolation</div>
-          </div>
+        <div className="flex items-center gap-2 shrink-0">
+          <button
+            onClick={() => setIsCustomStudioOpen(true)}
+            className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 font-medium rounded-lg text-xs transition-colors shadow-xs btn-press"
+          >
+            <Code2 className="w-3.5 h-3.5 text-slate-500" />
+            Custom Adapter Studio
+          </button>
+
+          <button
+            onClick={() => handleOpenConnectWizard()}
+            className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg text-xs transition-colors shadow-xs btn-press"
+          >
+            <Plus className="w-3.5 h-3.5" />
+            Connect Provider
+          </button>
         </div>
       </div>
 
-      {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+      {/* Provider Health Row */}
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
+        <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-xs">
+          <div className="text-[11px] text-slate-500 uppercase font-medium tracking-wide">Connected Providers</div>
+          <div className="text-lg font-semibold text-slate-900 mt-1 font-mono">
+            {providers.filter((p) => p.status === 'CONNECTED').length} <span className="text-xs font-sans text-slate-400 font-normal">/ {providers.length} configured</span>
+          </div>
+        </div>
+        <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-xs">
+          <div className="text-[11px] text-slate-500 uppercase font-medium tracking-wide">Handshake Health</div>
+          <div className="text-lg font-semibold text-emerald-700 mt-1 flex items-center gap-1.5">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600" /> 100% Operational
+          </div>
+        </div>
+        <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-xs">
+          <div className="text-[11px] text-slate-500 uppercase font-medium tracking-wide">Avg API Latency</div>
+          <div className="text-lg font-semibold text-slate-900 font-mono mt-1">24ms</div>
+        </div>
+        <div className="bg-white border border-slate-200/80 rounded-xl p-3.5 shadow-xs">
+          <div className="text-[11px] text-slate-500 uppercase font-medium tracking-wide">Decoupled Isolation</div>
+          <div className="text-lg font-semibold text-slate-900 mt-1">Zero Lock-In</div>
+        </div>
+      </div>
+
+      {/* CORE UX SECTION: "Business Capability + Provider Selection" */}
+      <div className="space-y-4">
+        <div>
+          <h3 className="text-sm font-semibold text-slate-900">
+            Business Capability Selection Matrix
+          </h3>
+          <p className="text-xs text-slate-500 mt-0.5">
+            Choose which underlying adapter powers each operational domain. The user interface and
+            data models remain unified.
+          </p>
+        </div>
+
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {capabilities.map((cap) => {
+            return (
+              <div
+                key={cap.capabilityId}
+                className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl p-4.5 flex flex-col justify-between transition-all duration-200 shadow-xs hover:shadow-md card-hover"
+              >
+                <div>
+                  <div className="flex items-center justify-between mb-2">
+                    <span className="text-[10px] font-mono uppercase font-bold px-2 py-0.5 rounded bg-slate-100 text-slate-700 border border-slate-200">
+                      {cap.module} MODULE
+                    </span>
+                    <span className="text-[11px] text-emerald-700 font-semibold flex items-center gap-1">
+                      <CheckCircle className="w-3.5 h-3.5 text-emerald-600" /> Bound & Active
+                    </span>
+                  </div>
+
+                  <h4 className="text-sm font-bold text-slate-900">{cap.name}</h4>
+                  <p className="text-xs text-slate-500 mt-1 leading-snug">{cap.description}</p>
+                </div>
+
+                <div className="mt-4 pt-3 border-t border-slate-100 space-y-2">
+                  <span className="text-[10px] font-mono uppercase text-slate-400 block font-semibold">
+                    Active Provider Adapter
+                  </span>
+
+                  <select
+                    value={cap.activeProviderId}
+                    onChange={(e) =>
+                      handleSwitchCapabilityProvider(cap.capabilityId, e.target.value)
+                    }
+                    className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-xs font-medium text-slate-800 focus:outline-none focus:border-slate-400 font-mono"
+                  >
+                    {cap.availableProviderIds.map((pId) => (
+                      <option key={pId} value={pId}>
+                        {pId.replace(/_/g, ' ').toUpperCase()} (Ready)
+                      </option>
+                    ))}
+                  </select>
+
+                  <div className="flex items-center justify-between text-[10px] text-slate-500 font-mono pt-1">
+                    <span>Failover: Automatic</span>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenConnectWizard()}
+                      className="text-slate-700 hover:text-slate-900 font-sans font-medium hover:underline"
+                    >
+                      Change Setup →
+                    </button>
+                  </div>
+                </div>
+              </div>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* SECTION: Provider Marketplace & Active Adapters */}
+      <div className="space-y-4 pt-2">
+        <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
+          <div>
+            <h3 className="text-sm font-semibold text-slate-900">
+              Provider Adapter Marketplace & Directory
+            </h3>
+            <p className="text-xs text-slate-500 mt-0.5">
+              Connect external platforms, configure secrets, and inspect real-time ping latency.
+            </p>
+          </div>
+
+          <input
+            type="text"
+            value={searchQuery}
+            onChange={(e) => setSearchQuery(e.target.value)}
+            placeholder="Search providers (e.g. Shopify, Stripe)..."
+            className="w-full sm:w-64 bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-xs text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 shadow-xs"
+          />
+        </div>
+
         {/* Category Pills */}
-        <div className="flex items-center gap-1.5 overflow-x-auto w-full sm:w-auto pb-1 sm:pb-0">
+        <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
           {categories.map((cat) => {
-            const Icon = cat.icon;
             const active = activeCategory === cat.id;
             return (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center gap-2 px-3.5 py-1.5 rounded-xl text-xs font-medium transition-all whitespace-nowrap ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap btn-press ${
                   active
-                    ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-sm'
-                    : 'bg-slate-950/60 text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-slate-800'
+                    ? 'bg-slate-900 text-white shadow-xs font-semibold'
+                    : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${active ? 'text-teal-400' : 'text-slate-500'}`} />
-                {cat.label}
+                <span>{cat.label}</span>
+                <span
+                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
+                    active
+                      ? 'bg-slate-800 text-slate-200 font-semibold'
+                      : 'bg-slate-100 text-slate-500'
+                  }`}
+                >
+                  {cat.count}
+                </span>
               </button>
             );
           })}
         </div>
 
-        {/* Search */}
-        <input
-          type="text"
-          value={searchQuery}
-          onChange={(e) => setSearchQuery(e.target.value)}
-          placeholder="Filter integrations by name..."
-          className="w-full sm:w-64 bg-slate-950/80 border border-slate-800 rounded-xl px-3.5 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
-        />
-      </div>
-
-      {/* Providers Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-        {filteredProviders.map((provider) => {
-          const isConnected = provider.status === 'CONNECTED';
-          const isConfigured = provider.status === 'CONFIGURED';
-          const isTesting = testingId === provider.id;
-
-          return (
-            <div
+        {/* Providers Grid */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+          {filteredProviders.map((provider) => (
+            <ProviderCard
               key={provider.id}
-              className="bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 rounded-2xl p-5 flex flex-col justify-between transition-all group backdrop-blur-sm relative overflow-hidden"
-            >
-              {/* Top Row: Icon, Status Badge */}
-              <div>
-                <div className="flex items-start justify-between gap-3 mb-3">
-                  <div
-                    className={`w-11 h-11 rounded-xl bg-gradient-to-tr ${provider.accentColor} p-0.5 flex items-center justify-center shadow-lg`}
-                  >
-                    <div className="w-full h-full bg-slate-950/80 rounded-[10px] flex items-center justify-center font-bold text-slate-100 text-sm">
-                      {provider.name.substring(0, 2).toUpperCase()}
-                    </div>
-                  </div>
-
-                  <div className="flex items-center gap-1.5">
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold ${
-                        isConnected
-                          ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 shadow-sm shadow-emerald-500/10'
-                          : isConfigured
-                          ? 'bg-blue-500/10 text-blue-400 border border-blue-500/30'
-                          : 'bg-slate-800/60 text-slate-400 border border-slate-700/60'
-                      }`}
-                    >
-                      {isConnected && <span className="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-pulse" />}
-                      {provider.status}
-                    </span>
-                    <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-900 text-slate-400 border border-slate-800">
-                      {provider.environment}
-                    </span>
-                  </div>
-                </div>
-
-                <h3 className="text-base font-bold text-slate-100 group-hover:text-teal-400 transition-colors flex items-center gap-1.5">
-                  {provider.name}
-                </h3>
-                <p className="text-xs text-slate-400 mt-1 line-clamp-2 leading-relaxed">
-                  {provider.description}
-                </p>
-              </div>
-
-              {/* Latency & Actions */}
-              <div className="mt-5 pt-4 border-t border-slate-800/80">
-                <div className="flex items-center justify-between text-[11px] text-slate-500 mb-3 font-mono">
-                  <span>Latency: {provider.latencyMs ? `${provider.latencyMs}ms` : 'Not tested'}</span>
-                  <span>Sync: {provider.autoSync ? 'Auto' : 'Manual'}</span>
-                </div>
-
-                <div className="grid grid-cols-2 gap-2">
-                  <button
-                    onClick={() => handleTestConnection(provider)}
-                    disabled={isTesting}
-                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 text-slate-300 rounded-xl text-xs font-medium transition-colors"
-                  >
-                    <Radio className={`w-3.5 h-3.5 text-teal-400 ${isTesting ? 'animate-pulse' : ''}`} />
-                    {isTesting ? 'Pinging...' : 'Test Ping'}
-                  </button>
-
-                  <button
-                    onClick={() => setSelectedProvider(provider)}
-                    className="flex items-center justify-center gap-1.5 px-3 py-1.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-xl text-xs font-medium transition-colors"
-                  >
-                    <Sliders className="w-3.5 h-3.5" /> Configure
-                  </button>
-                </div>
-              </div>
-            </div>
-          );
-        })}
+              provider={provider}
+              onConfigure={(p) => setSelectedProvider(p)}
+              onConnect={(p) => handleOpenConnectWizard(p)}
+              onTestPing={(p) => handleTestConnection(p)}
+              isTesting={testingId === provider.id}
+            />
+          ))}
+        </div>
       </div>
 
       {/* Slide-over Drawer: Provider Configuration */}
@@ -329,13 +398,13 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
         {selectedProvider && (
           <form onSubmit={handleSaveConfig} className="space-y-5 text-xs">
             {/* Status & Mode Banner */}
-            <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between">
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
               <div>
                 <span className="text-[10px] uppercase font-mono text-slate-500 block mb-0.5">
                   Connection State
                 </span>
-                <span className="text-xs font-semibold text-emerald-400 flex items-center gap-1.5">
-                  <span className="w-2 h-2 rounded-full bg-emerald-400 animate-pulse" />
+                <span className="text-xs font-semibold text-emerald-700 flex items-center gap-1.5">
+                  <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
                   {selectedProvider.status} • {selectedProvider.latencyMs || 22}ms
                 </span>
               </div>
@@ -344,7 +413,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                 <span className="text-[10px] uppercase font-mono text-slate-500 block mb-0.5">
                   Environment
                 </span>
-                <div className="inline-flex bg-slate-900 p-0.5 rounded-lg border border-slate-800">
+                <div className="inline-flex bg-slate-200/70 p-0.5 rounded-lg border border-slate-200">
                   <button
                     type="button"
                     onClick={() =>
@@ -352,8 +421,8 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                     }
                     className={`px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all ${
                       selectedProvider.environment === 'SANDBOX'
-                        ? 'bg-teal-500 text-slate-950 shadow-sm'
-                        : 'text-slate-400'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600'
                     }`}
                   >
                     Sandbox
@@ -365,8 +434,8 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                     }
                     className={`px-2.5 py-1 rounded-md text-[10px] font-semibold transition-all ${
                       selectedProvider.environment === 'PRODUCTION'
-                        ? 'bg-teal-500 text-slate-950 shadow-sm'
-                        : 'text-slate-400'
+                        ? 'bg-white text-slate-900 shadow-xs'
+                        : 'text-slate-600'
                     }`}
                   >
                     Live / Prod
@@ -377,7 +446,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
 
             {/* API Credentials */}
             <div>
-              <label className="block text-slate-300 font-medium mb-1">
+              <label className="block text-slate-700 font-medium mb-1">
                 API Secret Key / Access Token
               </label>
               <div className="relative">
@@ -387,7 +456,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                   onChange={(e) =>
                     setSelectedProvider({ ...selectedProvider, apiKey: e.target.value })
                   }
-                  className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 font-mono text-xs focus:outline-none focus:border-teal-500"
+                  className="w-full bg-white border border-slate-200 rounded-lg px-3 py-2 text-slate-900 font-mono text-xs focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400"
                 />
               </div>
               <p className="text-[11px] text-slate-500 mt-1">
@@ -397,7 +466,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
 
             {/* Inbound Webhook URL */}
             <div>
-              <label className="block text-slate-300 font-medium mb-1">
+              <label className="block text-slate-700 font-medium mb-1">
                 Inbound Webhook Endpoint
               </label>
               <div className="flex gap-2">
@@ -405,7 +474,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                   type="text"
                   readOnly
                   value={`https://api.ubop.internal/api/v1/webhooks/${selectedProvider.id}`}
-                  className="flex-1 bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-teal-400 font-mono text-xs focus:outline-none"
+                  className="flex-1 bg-slate-50 border border-slate-200 rounded-lg px-3 py-2 text-slate-700 font-mono text-xs focus:outline-none"
                 />
                 <button
                   type="button"
@@ -415,10 +484,10 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                       'Webhook URL'
                     )
                   }
-                  className="px-3 py-2 bg-slate-950 hover:bg-slate-800 border border-slate-800 rounded-xl text-slate-300 transition-colors flex items-center gap-1"
+                  className="px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-slate-700 transition-colors flex items-center gap-1 shadow-xs btn-press"
                 >
                   {copiedField === 'Webhook URL' ? (
-                    <Check className="w-3.5 h-3.5 text-emerald-400" />
+                    <Check className="w-3.5 h-3.5 text-emerald-600" />
                   ) : (
                     <Copy className="w-3.5 h-3.5" />
                   )}
@@ -427,50 +496,54 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
             </div>
 
             {/* Feature Toggles */}
-            <div className="space-y-3 pt-3 border-t border-slate-800">
-              <span className="font-semibold text-slate-200 block">Adapter Capabilities</span>
+            <div className="space-y-3 pt-3 border-t border-slate-100">
+              <span className="font-semibold text-slate-800 block">Adapter Capabilities</span>
 
-              <div className="flex items-center justify-between p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+              <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
                 <div>
-                  <div className="font-medium text-slate-200">Real-time EventBus Dispatch</div>
+                  <div className="font-medium text-slate-800">Real-time EventBus Dispatch</div>
                   <div className="text-[11px] text-slate-500">
                     Propagate provider events into OMS and ERP automatically.
                   </div>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={selectedProvider.autoSync}
-                  onChange={() => handleToggleAutoSync(selectedProvider)}
-                  className="w-4 h-4 accent-teal-500 cursor-pointer"
-                />
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={selectedProvider.autoSync}
+                    onChange={() => handleToggleAutoSync(selectedProvider)}
+                  />
+                  <span className="slider" />
+                </label>
               </div>
 
-              <div className="flex items-center justify-between p-3 bg-slate-950/60 border border-slate-800/80 rounded-xl">
+              <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
                 <div>
-                  <div className="font-medium text-slate-200">Webhook Signature Verification</div>
+                  <div className="font-medium text-slate-800">Webhook Signature Verification</div>
                   <div className="text-[11px] text-slate-500">
                     Reject payloads that fail cryptographic HMAC signature check.
                   </div>
                 </div>
-                <input
-                  type="checkbox"
-                  defaultChecked
-                  className="w-4 h-4 accent-teal-500 cursor-pointer"
-                />
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    defaultChecked
+                  />
+                  <span className="slider" />
+                </label>
               </div>
             </div>
 
             {/* Test Handshake Section */}
-            <div className="p-4 bg-slate-950 border border-slate-800 rounded-xl flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <ShieldCheck className="w-4 h-4 text-teal-400" />
-                <span className="text-slate-300 font-medium">Verify Connection</span>
+            <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl flex items-center justify-between">
+              <div>
+                <span className="text-slate-800 font-medium">Verify Connection</span>
+                <p className="text-[11px] text-slate-500">Send test ping payload to verify response</p>
               </div>
               <button
                 type="button"
                 onClick={() => handleTestConnection(selectedProvider)}
                 disabled={testingId === selectedProvider.id}
-                className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-teal-400 rounded-lg text-xs font-semibold transition-colors"
+                className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 text-slate-700 rounded-lg text-xs font-semibold transition-colors shadow-xs btn-press"
               >
                 <RefreshCw
                   className={`w-3.5 h-3.5 ${
@@ -482,17 +555,17 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
             </div>
 
             {/* Actions */}
-            <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-800">
+            <div className="flex items-center justify-end gap-3 pt-6 border-t border-slate-100">
               <button
                 type="button"
                 onClick={() => setSelectedProvider(null)}
-                className="px-4 py-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+                className="px-4 py-2 rounded-lg text-slate-600 hover:text-slate-800 hover:bg-slate-100 transition-colors btn-press"
               >
                 Close
               </button>
               <button
                 type="submit"
-                className="px-5 py-2 bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold rounded-xl shadow-lg shadow-teal-500/10 transition-colors"
+                className="px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-xs transition-colors btn-press"
               >
                 Save Settings
               </button>
@@ -501,111 +574,30 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
         )}
       </Drawer>
 
-      {/* Modal: Create Custom Provider */}
-      <Modal
-        isOpen={isCustomModalOpen}
-        onClose={() => setIsCustomModalOpen(false)}
-        title="Register Custom Provider Adapter"
-      >
-        <form onSubmit={handleCreateCustom} className="space-y-4 text-xs">
-          <div>
-            <label className="block text-slate-400 font-medium mb-1">Provider Adapter Name *</label>
-            <input
-              type="text"
-              required
-              value={customForm.name}
-              onChange={(e) => setCustomForm({ ...customForm, name: e.target.value })}
-              placeholder="e.g. Custom WMS Hub or VNPay Gateway"
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
-            />
-          </div>
+      {/* 5-Step Integration Wizard Modal */}
+      <IntegrationWizard
+        isOpen={isWizardOpen}
+        onClose={() => setIsWizardOpen(false)}
+        initialProvider={wizardTargetProvider}
+        onComplete={(newProv) => {
+          onAddCustomProvider(newProv);
+          setIsWizardOpen(false);
+          toast.success(
+            'Provider Successfully Connected',
+            `${newProv.name} has completed handshake and is actively syncing.`
+          );
+        }}
+      />
 
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-slate-400 font-medium mb-1">Category</label>
-              <select
-                value={customForm.category}
-                onChange={(e) =>
-                  setCustomForm({ ...customForm, category: e.target.value as ProviderCategory })
-                }
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
-              >
-                <option value="PAYMENTS">PAYMENTS</option>
-                <option value="COMMUNICATIONS">COMMUNICATIONS</option>
-                <option value="LOGISTICS">LOGISTICS</option>
-                <option value="CRM">CRM</option>
-                <option value="CUSTOM">CUSTOM</option>
-              </select>
-            </div>
-
-            <div>
-              <label className="block text-slate-400 font-medium mb-1">Environment</label>
-              <select
-                value={customForm.environment}
-                onChange={(e) =>
-                  setCustomForm({
-                    ...customForm,
-                    environment: e.target.value as 'SANDBOX' | 'PRODUCTION',
-                  })
-                }
-                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
-              >
-                <option value="SANDBOX">SANDBOX</option>
-                <option value="PRODUCTION">PRODUCTION</option>
-              </select>
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-slate-400 font-medium mb-1">Outbound Target Endpoint URL *</label>
-            <input
-              type="url"
-              required
-              value={customForm.webhookUrl}
-              onChange={(e) => setCustomForm({ ...customForm, webhookUrl: e.target.value })}
-              placeholder="https://warehouse.partner.com/api/v1/sync"
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-400 font-medium mb-1">Secret Token / API Key</label>
-            <input
-              type="text"
-              value={customForm.apiKey}
-              onChange={(e) => setCustomForm({ ...customForm, apiKey: e.target.value })}
-              placeholder="token_live_xxxxxxxxxxxx"
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
-            />
-          </div>
-
-          <div>
-            <label className="block text-slate-400 font-medium mb-1">Custom Request Headers (JSON)</label>
-            <textarea
-              rows={3}
-              value={customForm.customHeaders}
-              onChange={(e) => setCustomForm({ ...customForm, customHeaders: e.target.value })}
-              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
-            />
-          </div>
-
-          <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
-            <button
-              type="button"
-              onClick={() => setIsCustomModalOpen(false)}
-              className="px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
-            >
-              Cancel
-            </button>
-            <button
-              type="submit"
-              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold rounded-lg transition-colors"
-            >
-              Create Adapter
-            </button>
-          </div>
-        </form>
-      </Modal>
+      {/* Custom Provider Studio Modal */}
+      <CustomProviderStudio
+        isOpen={isCustomStudioOpen}
+        onClose={() => setIsCustomStudioOpen(false)}
+        onActivate={(newProv) => {
+          onAddCustomProvider(newProv);
+          setIsCustomStudioOpen(false);
+        }}
+      />
     </div>
   );
 };
