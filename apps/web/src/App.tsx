@@ -9,6 +9,7 @@ import { ProvidersHubView } from './views/ProvidersHubView';
 import { WorkflowView } from './views/WorkflowView';
 import { SettingsView } from './views/SettingsView';
 import { ToastProvider } from './components/Toast';
+import { CommandPalette } from './components/CommandPalette';
 import {
   Customer,
   Product,
@@ -23,6 +24,18 @@ import {
 const MainApp: React.FC = () => {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [loading, setLoading] = useState(false);
+  const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
+
+  useEffect(() => {
+    const handleGlobalKeyDown = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
+        e.preventDefault();
+        setIsCommandPaletteOpen((prev) => !prev);
+      }
+    };
+    window.addEventListener('keydown', handleGlobalKeyDown);
+    return () => window.removeEventListener('keydown', handleGlobalKeyDown);
+  }, []);
 
   // KPIs
   const [kpis, setKpis] = useState<KpiSummary>({
@@ -528,7 +541,19 @@ const MainApp: React.FC = () => {
 
       {/* Main content body */}
       <div className="flex-1 flex flex-col min-w-0">
-        <Header title={getTabTitle()} onRefresh={refreshData} loading={loading} />
+        <Header
+          title={getTabTitle()}
+          onRefresh={refreshData}
+          loading={loading}
+          onOpenCommandPalette={() => setIsCommandPaletteOpen(true)}
+        />
+
+        {/* Command Palette */}
+        <CommandPalette
+          isOpen={isCommandPaletteOpen}
+          onClose={() => setIsCommandPaletteOpen(false)}
+          onNavigate={(tab) => setCurrentTab(tab)}
+        />
 
         <main className="flex-1 p-8 overflow-y-auto">
           {currentTab === 'dashboard' && (

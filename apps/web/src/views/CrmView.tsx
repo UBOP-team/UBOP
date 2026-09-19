@@ -8,10 +8,6 @@ import {
   ChevronRight,
   ShoppingCart,
   Calendar,
-  Users,
-  UserCheck,
-  TrendingUp,
-  DollarSign,
   FileText,
   ExternalLink,
 } from 'lucide-react';
@@ -172,7 +168,6 @@ export const CrmView: React.FC<CrmViewProps> = ({
           value={customers.length}
           change={14.2}
           period="vs prior month"
-          icon={Users}
           colorScheme="teal"
           sparklineData={[12, 14, 18, 22, 25, 29, customers.length]}
         />
@@ -181,7 +176,6 @@ export const CrmView: React.FC<CrmViewProps> = ({
           value={leadsCount || 12}
           change={28.5}
           period="vs prior 30 days"
-          icon={UserCheck}
           colorScheme="blue"
           sparklineData={[5, 8, 7, 10, 14, 18, 22]}
         />
@@ -191,7 +185,6 @@ export const CrmView: React.FC<CrmViewProps> = ({
           change={4.1}
           target="70.0%"
           period="lead to customer"
-          icon={TrendingUp}
           colorScheme="emerald"
         />
         <MetricCard
@@ -199,7 +192,6 @@ export const CrmView: React.FC<CrmViewProps> = ({
           value="$482,500"
           change={19.8}
           period="active opportunities"
-          icon={DollarSign}
           colorScheme="indigo"
           sparklineData={[140, 180, 220, 310, 390, 482]}
         />

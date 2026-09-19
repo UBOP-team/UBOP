@@ -8,7 +8,7 @@ export interface MetricCardProps {
   change?: number;
   period?: string;
   target?: string;
-  icon?: LucideIcon;
+  icon?: LucideIcon; // Kept in interface for backward compat, but intentionally NOT rendered to eliminate corner icon clutter
   sparklineData?: number[];
   colorScheme?: string;
 }
@@ -20,7 +20,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   change,
   period = 'vs prior period',
   target,
-  icon: Icon,
   sparklineData,
 }) => {
   const isPositive = change !== undefined && change > 0;
@@ -28,28 +27,28 @@ export const MetricCard: React.FC<MetricCardProps> = ({
   const isNeutral = change !== undefined && change === 0;
 
   return (
-    <div className="bg-white border border-slate-200/90 rounded-2xl p-5 flex flex-col justify-between card-hover shadow-xs relative overflow-hidden transition-all duration-200">
+    <div className="bg-white border border-slate-200/80 rounded-xl p-5 flex flex-col justify-between card-hover shadow-enterprise hover:shadow-enterprise-hover inset-highlight relative overflow-hidden transition-all duration-200">
       <div>
-        {/* Title line - restrained and clean */}
+        {/* Metric Label - Clean & Crisp without decorative corner icon */}
         <div className="flex items-center justify-between gap-2 mb-2">
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wider">
+          <span className="text-[11px] font-semibold text-slate-500 uppercase tracking-wider">
             {title}
           </span>
-          {Icon && (
-            <div className="text-slate-400">
-              <Icon className="w-4 h-4" />
-            </div>
+          {target && (
+            <span className="text-[10px] font-mono font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200/80">
+              Target: {target}
+            </span>
           )}
         </div>
 
         {/* Primary Value */}
-        <div className="text-2xl font-bold tracking-tight text-slate-900 font-mono">
+        <div className="text-2xl font-bold tracking-tight text-slate-900 font-mono tabular-nums">
           {value}
         </div>
       </div>
 
-      {/* Delta, subtext, target & sparkline */}
-      <div className="mt-3.5 pt-3 border-t border-slate-100 flex items-center justify-between text-xs">
+      {/* Delta, subtext & sparkline */}
+      <div className="mt-3.5 pt-3 border-t border-slate-100/90 flex items-center justify-between text-xs">
         {change !== undefined ? (
           <div className="flex items-center gap-1.5">
             <span
@@ -72,12 +71,6 @@ export const MetricCard: React.FC<MetricCardProps> = ({
           <span className="text-[11px] text-slate-500">{subtext}</span>
         ) : (
           <span />
-        )}
-
-        {target && (
-          <span className="text-[10px] font-mono font-medium text-slate-500 bg-slate-50 px-2 py-0.5 rounded border border-slate-200">
-            Target: {target}
-          </span>
         )}
 
         {/* Mini SVG Sparkline */}

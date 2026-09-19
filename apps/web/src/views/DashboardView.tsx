@@ -1,12 +1,7 @@
 import React, { useState } from 'react';
 import {
-  DollarSign,
-  ShoppingCart,
-  Users,
-  AlertTriangle,
   ArrowUpRight,
   ShieldCheck,
-  Calendar,
   Download,
   Share2,
   Plus,
@@ -34,6 +29,7 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   const [timeRange, setTimeRange] = useState<'7D' | '30D' | '90D' | 'YTD'>('30D');
   const [isBuilderMode, setIsBuilderMode] = useState(false);
   const [selectedFunnelStage, setSelectedFunnelStage] = useState<string | null>(null);
+  const [hoverIndex, setHoverIndex] = useState<number | null>(null);
 
   // Power BI Funnel Stages: Ingested -> Qualified -> Packed -> Shipped -> Delivered
   const funnelStages = [
@@ -63,24 +59,54 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
       { label: 'Sun', val: 82, revenue: 24800 },
     ],
     '30D': [
-      { label: 'W1', val: 52, revenue: 84000 },
-      { label: 'W2', val: 68, revenue: 112000 },
-      { label: 'W3', val: 84, revenue: 138000 },
-      { label: 'W4', val: 95, revenue: 148500 },
+      { label: 'Week 1', val: 52, revenue: 84000 },
+      { label: 'Week 2', val: 68, revenue: 112000 },
+      { label: 'Week 3', val: 84, revenue: 138000 },
+      { label: 'Week 4', val: 95, revenue: 148500 },
     ],
     '90D': [
-      { label: 'Jul', val: 64, revenue: 290000 },
-      { label: 'Aug', val: 78, revenue: 345000 },
-      { label: 'Sep', val: 96, revenue: 482500 },
+      { label: 'Jul 2026', val: 64, revenue: 290000 },
+      { label: 'Aug 2026', val: 78, revenue: 345000 },
+      { label: 'Sep 2026', val: 96, revenue: 482500 },
     ],
     'YTD': [
-      { label: 'Q1', val: 54, revenue: 820000 },
-      { label: 'Q2', val: 72, revenue: 1040000 },
-      { label: 'Q3', val: 96, revenue: 1420000 },
+      { label: 'Q1 FY26', val: 54, revenue: 820000 },
+      { label: 'Q2 FY26', val: 72, revenue: 1040000 },
+      { label: 'Q3 FY26', val: 96, revenue: 1420000 },
     ],
   };
 
   const currentTrend = salesTrends[timeRange];
+
+  // SVG Area Chart Calculations
+  const svgWidth = 720;
+  const svgHeight = 220;
+  const padX = 40;
+  const padYTop = 25;
+  const padYBottom = 30;
+  const plotWidth = svgWidth - padX * 2;
+  const plotHeight = svgHeight - padYTop - padYBottom;
+
+  const maxRevenue = Math.max(...currentTrend.map((t) => t.revenue)) * 1.12;
+  const minRevenue = 0;
+
+  const chartPoints = currentTrend.map((item, i) => {
+    const x = padX + (currentTrend.length === 1 ? plotWidth / 2 : (i / (currentTrend.length - 1)) * plotWidth);
+    const y = padYTop + plotHeight - ((item.revenue - minRevenue) / (maxRevenue - minRevenue)) * plotHeight;
+    return { ...item, x, y };
+  });
+
+  const linePath = chartPoints.reduce((acc, pt, i) => {
+    if (i === 0) return `M ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
+    const prev = chartPoints[i - 1];
+    const cpX1 = (prev.x + (pt.x - prev.x) / 2).toFixed(1);
+    const cpX2 = cpX1;
+    return `${acc} C ${cpX1} ${prev.y.toFixed(1)}, ${cpX2} ${pt.y.toFixed(1)}, ${pt.x.toFixed(1)} ${pt.y.toFixed(1)}`;
+  }, '');
+
+  const areaPath = `${linePath} L ${chartPoints[chartPoints.length - 1].x.toFixed(1)} ${(padYTop + plotHeight).toFixed(1)} L ${chartPoints[0].x.toFixed(1)} ${(padYTop + plotHeight).toFixed(1)} Z`;
+
+  const activeHoverItem = hoverIndex !== null ? chartPoints[hoverIndex] : null;
 
   const handleExport = () => {
     toast.success('Report Exported', 'Power BI telemetry dataset compiled into XLSX report.');
@@ -145,13 +171,15 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
         {/* Date Range & Quick Toolbar */}
         <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t border-slate-100 text-xs">
           <div className="flex items-center gap-2 text-slate-500">
-            <Calendar className="w-3.5 h-3.5 text-slate-400" />
             <span className="font-semibold text-slate-700">Reporting Horizon:</span>
             <div className="inline-flex bg-slate-100 p-0.5 rounded-lg border border-slate-200">
               {(['7D', '30D', '90D', 'YTD'] as const).map((r) => (
                 <button
                   key={r}
-                  onClick={() => setTimeRange(r)}
+                  onClick={() => {
+                    setTimeRange(r);
+                    setHoverIndex(null);
+                  }}
                   className={`px-3 py-1 rounded-md font-semibold transition-all text-xs ${
                     timeRange === r
                       ? 'bg-white text-slate-900 shadow-xs'
@@ -199,7 +227,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           subtext={`Avg Order Value: $${kpis.avg_order_value.toFixed(2)}`}
           change={18.4}
           period="vs prior period"
-          icon={DollarSign}
           colorScheme="teal"
           sparklineData={[42, 58, 65, 74, 89, 96]}
         />
@@ -209,7 +236,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           subtext="Processed through OMS"
           change={12.0}
           period="omnichannel ingestion"
-          icon={ShoppingCart}
           colorScheme="blue"
           sparklineData={[12, 14, 18, 22, 29]}
         />
@@ -219,7 +245,6 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           subtext="Managed in CRM"
           change={8.5}
           period="enterprise accounts"
-          icon={Users}
           colorScheme="emerald"
         />
         <MetricCard
@@ -228,53 +253,162 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
           subtext={kpis.low_stock_count > 0 ? 'Requires replenishment' : 'Optimal capacity'}
           change={kpis.low_stock_count > 0 ? -15.0 : 0}
           period="reorder threshold"
-          icon={AlertTriangle}
           colorScheme={kpis.low_stock_count > 0 ? 'amber' : 'teal'}
         />
       </div>
 
-      {/* Power BI Visuals: Line Chart & Bar Chart */}
+      {/* Power BI Visuals: Interactive SVG Area Chart & Bar Chart */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* LINE CHART: Order Velocity & Trend */}
-        <div className="lg:col-span-8 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-xs card-hover">
+        {/* STRIPE-GRADE INTERACTIVE SVG AREA CHART */}
+        <div className="lg:col-span-8 bg-white border border-slate-200/90 rounded-2xl p-5 shadow-enterprise card-hover relative">
           <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-100">
             <div>
               <h3 className="text-sm font-bold text-slate-900">
                 Revenue & Order Ingestion Velocity
               </h3>
               <p className="text-xs text-slate-500 mt-0.5">
-                Real-time throughput aggregated across Shopify, Amazon, and ERP general ledger.
+                Interactive real-time throughput aggregated across Shopify, Amazon, and ERP ledger.
               </p>
             </div>
-            <span className="font-mono text-xs text-teal-700 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200 font-semibold">
-              Horizon: {timeRange}
-            </span>
-          </div>
-
-          <div className="h-64 flex items-end justify-between gap-3 pt-6 pb-2 px-2">
-            {currentTrend.map((item, idx) => {
-              const maxVal = Math.max(...currentTrend.map((t) => t.val));
-              const heightPct = Math.round((item.val / maxVal) * 100);
-
-              return (
-                <div key={idx} className="flex-1 flex flex-col items-center gap-2 group relative">
-                  {/* Tooltip on hover */}
-                  <div className="absolute -top-10 bg-slate-900 border border-slate-800 px-2 py-1 rounded-md text-[10px] font-mono text-white opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg z-20 whitespace-nowrap">
-                    ${item.revenue.toLocaleString()}
-                  </div>
-
-                  <div className="w-full bg-slate-100 rounded-xl h-48 flex items-end p-1.5">
-                    <div
-                      style={{ height: `${heightPct}%` }}
-                      className="w-full bg-gradient-to-t from-teal-600 to-teal-400 rounded-lg transition-all group-hover:brightness-110"
-                    />
-                  </div>
-                  <span className="text-[11px] font-mono text-slate-500 font-medium">
-                    {item.label}
+            <div className="flex items-center gap-3">
+              {activeHoverItem ? (
+                <div className="text-right">
+                  <span className="font-mono text-xs font-bold text-teal-700">
+                    ${activeHoverItem.revenue.toLocaleString()}
+                  </span>
+                  <span className="text-[11px] text-slate-400 ml-2">
+                    ({activeHoverItem.val} orders)
                   </span>
                 </div>
-              );
-            })}
+              ) : (
+                <span className="font-mono text-xs text-teal-700 bg-teal-50 px-2.5 py-1 rounded-lg border border-teal-200 font-semibold">
+                  Horizon: {timeRange}
+                </span>
+              )}
+            </div>
+          </div>
+
+          <div
+            className="relative w-full h-64 select-none cursor-crosshair"
+            onMouseLeave={() => setHoverIndex(null)}
+          >
+            <svg
+              className="w-full h-full overflow-visible"
+              viewBox={`0 0 ${svgWidth} ${svgHeight}`}
+              preserveAspectRatio="none"
+              onMouseMove={(e) => {
+                const rect = e.currentTarget.getBoundingClientRect();
+                const mouseRelX = ((e.clientX - rect.left) / rect.width) * svgWidth;
+                let closestIdx = 0;
+                let minDiff = Infinity;
+                chartPoints.forEach((pt, idx) => {
+                  const diff = Math.abs(pt.x - mouseRelX);
+                  if (diff < minDiff) {
+                    minDiff = diff;
+                    closestIdx = idx;
+                  }
+                });
+                setHoverIndex(closestIdx);
+              }}
+            >
+              <defs>
+                <linearGradient id="revenueGradient" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stopColor="#0d9488" stopOpacity="0.25" />
+                  <stop offset="100%" stopColor="#0d9488" stopOpacity="0.0" />
+                </linearGradient>
+              </defs>
+
+              {/* Grid guide lines */}
+              {[0.25, 0.5, 0.75, 1].map((lvl) => {
+                const y = padYTop + plotHeight * (1 - lvl);
+                return (
+                  <line
+                    key={lvl}
+                    x1={padX}
+                    y1={y}
+                    x2={svgWidth - padX}
+                    y2={y}
+                    stroke="#f1f5f9"
+                    strokeWidth="1"
+                    strokeDasharray="4 4"
+                  />
+                );
+              })}
+
+              {/* Area Gradient Fill */}
+              <path d={areaPath} fill="url(#revenueGradient)" />
+
+              {/* Stroke Curve */}
+              <path
+                d={linePath}
+                fill="none"
+                stroke="#0d9488"
+                strokeWidth="2.5"
+                strokeLinecap="round"
+                strokeLinejoin="round"
+              />
+
+              {/* Data points */}
+              {chartPoints.map((pt, idx) => (
+                <circle
+                  key={idx}
+                  cx={pt.x}
+                  cy={pt.y}
+                  r={hoverIndex === idx ? 6 : 3.5}
+                  className="transition-all duration-150"
+                  fill={hoverIndex === idx ? '#0d9488' : '#ffffff'}
+                  stroke="#0d9488"
+                  strokeWidth={hoverIndex === idx ? 3 : 2}
+                />
+              ))}
+
+              {/* Scrubber vertical line */}
+              {activeHoverItem && (
+                <line
+                  x1={activeHoverItem.x}
+                  y1={padYTop}
+                  x2={activeHoverItem.x}
+                  y2={padYTop + plotHeight}
+                  stroke="#0d9488"
+                  strokeWidth="1.5"
+                  strokeDasharray="4 4"
+                />
+              )}
+            </svg>
+
+            {/* Floating Tooltip Card */}
+            {activeHoverItem && (
+              <div
+                style={{
+                  left: `${(activeHoverItem.x / svgWidth) * 100}%`,
+                  top: `${Math.max(10, (activeHoverItem.y / svgHeight) * 100 - 30)}%`,
+                  transform: 'translate(-50%, -100%)',
+                }}
+                className="absolute pointer-events-none bg-slate-900/95 backdrop-blur-md text-white px-3 py-2 rounded-xl shadow-enterprise-popover border border-slate-700/80 z-30 min-w-[130px] animate-smooth-fade"
+              >
+                <div className="text-[10px] uppercase font-mono text-slate-400 font-medium">
+                  {activeHoverItem.label}
+                </div>
+                <div className="font-mono text-sm font-bold text-teal-400 mt-0.5">
+                  ${activeHoverItem.revenue.toLocaleString()}
+                </div>
+                <div className="text-[10px] text-slate-300 font-mono mt-0.5">
+                  {activeHoverItem.val} orders processed
+                </div>
+              </div>
+            )}
+
+            {/* X-Axis Labels */}
+            <div className="absolute bottom-0 left-0 right-0 flex justify-between px-10 text-[11px] font-mono text-slate-400 font-medium">
+              {chartPoints.map((pt, idx) => (
+                <span
+                  key={idx}
+                  className={hoverIndex === idx ? 'text-teal-700 font-bold' : ''}
+                >
+                  {pt.label}
+                </span>
+              ))}
+            </div>
           </div>
         </div>
 
