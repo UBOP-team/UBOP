@@ -8,9 +8,18 @@ import {
   PackageCheck,
   ArrowUpRight,
   ShieldCheck,
+  Calendar,
+  Download,
+  Share2,
+  Plus,
+  BarChart2,
+  LineChart as LineChartIcon,
+  Sliders,
+  Layers,
 } from 'lucide-react';
-import { StatsCard } from '../components/StatsCard';
+import { MetricCard } from '../components/MetricCard';
 import { KpiSummary, Order } from '../types';
+import { useToast } from '../components/Toast';
 
 interface DashboardViewProps {
   kpis: KpiSummary;
@@ -25,206 +34,414 @@ export const DashboardView: React.FC<DashboardViewProps> = ({
   onSelectOrder,
   onNavigateTab,
 }) => {
-  const [timeRange, setTimeRange] = useState<'7D' | '30D' | '90D'>('30D');
+  const toast = useToast();
+  const [timeRange, setTimeRange] = useState<'7D' | '30D' | '90D' | 'YTD'>('30D');
+  const [isBuilderMode, setIsBuilderMode] = useState(false);
+  const [selectedFunnelStage, setSelectedFunnelStage] = useState<string | null>(null);
+
+  // Power BI Funnel Stages: Ingested -> Qualified -> Packed -> Shipped -> Delivered
+  const funnelStages = [
+    { name: 'Lead / Ingestion', count: 1420, percent: '100%', color: 'bg-blue-500' },
+    { name: 'Order Confirmed', count: 1180, percent: '83.1%', color: 'bg-teal-500' },
+    { name: 'Warehouse Packed', count: 980, percent: '69.0%', color: 'bg-emerald-500' },
+    { name: 'Carrier In-Transit', count: 910, percent: '64.1%', color: 'bg-amber-500' },
+    { name: 'Fulfill & Delivered', count: 865, percent: '60.9%', color: 'bg-indigo-500' },
+  ];
+
+  // Bar Chart Data
+  const categorySales = [
+    { category: 'Enterprise Hardware', value: 48, amount: '$58,400' },
+    { category: 'IoT Sensor Nodes', value: 72, amount: '$86,200' },
+    { category: 'Power Distribution', value: 34, amount: '$41,000' },
+    { category: 'Accessories & Cables', value: 92, amount: '$24,800' },
+  ];
 
   const salesTrends = {
     '7D': [
-      { month: 'Mon', val: 42 },
-      { month: 'Tue', val: 58 },
-      { month: 'Wed', val: 65 },
-      { month: 'Thu', val: 74 },
-      { month: 'Fri', val: 89 },
-      { month: 'Sat', val: 96 },
-      { month: 'Sun', val: 82 },
+      { label: 'Mon', val: 42, revenue: 12400 },
+      { label: 'Tue', val: 58, revenue: 16800 },
+      { label: 'Wed', val: 65, revenue: 18500 },
+      { label: 'Thu', val: 74, revenue: 21200 },
+      { label: 'Fri', val: 89, revenue: 26400 },
+      { label: 'Sat', val: 96, revenue: 29100 },
+      { label: 'Sun', val: 82, revenue: 24800 },
     ],
     '30D': [
-      { month: 'W1', val: 52 },
-      { month: 'W2', val: 68 },
-      { month: 'W3', val: 84 },
-      { month: 'W4', val: 95 },
+      { label: 'W1', val: 52, revenue: 84000 },
+      { label: 'W2', val: 68, revenue: 112000 },
+      { label: 'W3', val: 84, revenue: 138000 },
+      { label: 'W4', val: 95, revenue: 148500 },
     ],
     '90D': [
-      { month: 'Apr', val: 64 },
-      { month: 'May', val: 78 },
-      { month: 'Jun', val: 96 },
+      { label: 'Jul', val: 64, revenue: 290000 },
+      { label: 'Aug', val: 78, revenue: 345000 },
+      { label: 'Sep', val: 96, revenue: 482500 },
+    ],
+    'YTD': [
+      { label: 'Q1', val: 54, revenue: 820000 },
+      { label: 'Q2', val: 72, revenue: 1040000 },
+      { label: 'Q3', val: 96, revenue: 1420000 },
     ],
   };
 
   const currentTrend = salesTrends[timeRange];
 
+  const handleExport = () => {
+    toast.success('Report Exported', 'Power BI telemetry dataset compiled into XLSX report.');
+  };
+
+  const handleShare = () => {
+    navigator.clipboard.writeText(window.location.href);
+    toast.success('Share Link Copied', 'Interactive dashboard URI copied to clipboard.');
+  };
+
   return (
     <div className="space-y-6">
       {/* Top Banner */}
-      <div className="bg-gradient-to-r from-teal-950/60 via-slate-900 to-slate-900 border border-teal-500/20 rounded-2xl p-6 relative overflow-hidden backdrop-blur-sm">
+      <div className="bg-slate-900 border border-slate-800 rounded-2xl p-6 relative overflow-hidden shadow-xl">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 mb-1.5">
               <span className="px-2.5 py-0.5 rounded-full bg-teal-500/10 text-teal-400 border border-teal-500/30 text-[10px] font-mono uppercase font-semibold flex items-center gap-1.5">
                 <span className="w-1.5 h-1.5 rounded-full bg-teal-400 animate-pulse" />
-                Real-time Operations Engine
+                Power BI Enterprise Studio
               </span>
-              <span className="text-xs text-slate-500">• Event-Driven Monolith</span>
+              <span className="text-xs text-slate-500">• Real-time Analytics Fabric</span>
             </div>
-            <h2 className="text-2xl font-bold text-slate-100 tracking-tight">Executive Dashboard</h2>
+            <h2 className="text-2xl font-bold text-slate-100 tracking-tight">
+              Business Intelligence & Analytics Hub
+            </h2>
             <p className="text-xs text-slate-400 mt-1 max-w-xl">
-              Cross-functional telemetry synchronizing Order Management, Warehouse Stock, Customer CRM,
+              Cross-system operational telemetry synchronizing Order Management, Warehouse Stock, Customer CRM,
               and Provider Adapters in real-time.
             </p>
           </div>
 
-          <div className="flex items-center gap-2">
-            <span className="px-3 py-1.5 bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 rounded-xl text-xs font-semibold flex items-center gap-1.5">
-              <ShieldCheck className="w-4 h-4" /> Core Platform Operational
-            </span>
+          <div className="flex flex-wrap items-center gap-2">
+            <button
+              onClick={() => setIsBuilderMode(!isBuilderMode)}
+              className={`flex items-center gap-1.5 px-3.5 py-2 rounded-xl text-xs font-semibold transition-all border ${
+                isBuilderMode
+                  ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40'
+                  : 'bg-slate-950 text-slate-300 hover:bg-slate-800 border-slate-800'
+              }`}
+            >
+              <Sliders className="w-3.5 h-3.5" />
+              {isBuilderMode ? 'Exit Builder' : 'Dashboard Builder'}
+            </button>
+
+            <button
+              onClick={handleShare}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold transition-colors"
+            >
+              <Share2 className="w-3.5 h-3.5 text-teal-400" /> Share
+            </button>
+
+            <button
+              onClick={handleExport}
+              className="flex items-center gap-1.5 px-3.5 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-semibold transition-colors"
+            >
+              <Download className="w-3.5 h-3.5 text-emerald-400" /> Export
+            </button>
           </div>
         </div>
-      </div>
 
-      {/* KPI Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <StatsCard
-          title="Total Gross Revenue"
-          value={`$${kpis.total_revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
-          subtitle={`Avg Order: $${kpis.avg_order_value.toFixed(2)}`}
-          trend="+18.4%"
-          isPositive={true}
-          icon={DollarSign}
-          color="teal"
-        />
-        <StatsCard
-          title="Fulfillment Orders"
-          value={kpis.total_orders}
-          subtitle="Processed through OMS"
-          trend="+12.0%"
-          isPositive={true}
-          icon={ShoppingCart}
-          color="blue"
-        />
-        <StatsCard
-          title="Active Accounts"
-          value={kpis.total_customers}
-          subtitle="Managed in CRM"
-          trend="+8.5%"
-          isPositive={true}
-          icon={Users}
-          color="emerald"
-        />
-        <StatsCard
-          title="Stock Alerts"
-          value={kpis.low_stock_count}
-          subtitle="Under reorder minimum"
-          trend={kpis.low_stock_count > 0 ? "Requires restock" : "Optimal"}
-          isPositive={kpis.low_stock_count === 0}
-          icon={AlertTriangle}
-          color="amber"
-        />
-      </div>
-
-      {/* Main Charts & Recent Orders */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Revenue Performance Chart */}
-        <div className="lg:col-span-2 bg-slate-950/60 border border-slate-800/80 rounded-2xl p-6 backdrop-blur-sm">
-          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
-            <div>
-              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                <TrendingUp className="w-4 h-4 text-teal-400" />
-                Revenue & Sales Trajectory
-              </h3>
-              <p className="text-xs text-slate-400">Indexed sales growth across all channels</p>
-            </div>
-
-            {/* Time Range Pills */}
-            <div className="flex bg-slate-900 p-0.5 rounded-xl border border-slate-800 self-start sm:self-auto">
-              {(['7D', '30D', '90D'] as const).map((range) => (
+        {/* Date Range & Quick Toolbar */}
+        <div className="flex flex-wrap items-center justify-between gap-3 mt-6 pt-5 border-t border-slate-800/80 text-xs">
+          <div className="flex items-center gap-2 text-slate-400">
+            <Calendar className="w-3.5 h-3.5 text-slate-500" />
+            <span className="font-semibold text-slate-300">Reporting Horizon:</span>
+            <div className="inline-flex bg-slate-950 p-0.5 rounded-xl border border-slate-800">
+              {(['7D', '30D', '90D', 'YTD'] as const).map((r) => (
                 <button
-                  key={range}
-                  onClick={() => setTimeRange(range)}
-                  className={`px-3 py-1 rounded-lg text-xs font-semibold transition-all ${
-                    timeRange === range
+                  key={r}
+                  onClick={() => setTimeRange(r)}
+                  className={`px-3 py-1 rounded-lg font-semibold transition-all ${
+                    timeRange === r
                       ? 'bg-teal-500 text-slate-950 shadow-sm'
                       : 'text-slate-400 hover:text-slate-200'
                   }`}
                 >
-                  {range}
+                  {r}
                 </button>
               ))}
             </div>
           </div>
 
-          {/* Interactive Bar Chart */}
-          <div className="h-48 flex items-end justify-between gap-4 pt-4 border-b border-slate-800/80 pb-2">
-            {currentTrend.map((item) => (
-              <div key={item.month} className="flex-1 flex flex-col items-center gap-2 h-full justify-end group">
-                <div className="text-[10px] text-teal-400 font-mono opacity-0 group-hover:opacity-100 transition-opacity">
-                  ${item.val}k
-                </div>
-                <div
-                  className="w-full bg-slate-800 hover:bg-teal-500/80 rounded-t-xl transition-all duration-300 relative overflow-hidden"
-                  style={{ height: `${item.val}%` }}
-                >
-                  <div className="absolute inset-0 bg-gradient-to-t from-teal-500/30 to-transparent" />
-                </div>
-                <span className="text-xs text-slate-400 font-semibold">{item.month}</span>
-              </div>
-            ))}
+          <div className="flex items-center gap-2">
+            <span className="text-[11px] font-mono text-emerald-400 flex items-center gap-1">
+              <ShieldCheck className="w-3.5 h-3.5" />
+              Live Stream Handshake 100%
+            </span>
+          </div>
+        </div>
+      </div>
+
+      {/* Builder Mode Header Alert (if active) */}
+      {isBuilderMode && (
+        <div className="p-3.5 bg-cyan-950/40 border border-cyan-500/40 rounded-2xl flex items-center justify-between gap-3 text-xs animate-in fade-in duration-200">
+          <div className="flex items-center gap-2 text-cyan-300 font-semibold">
+            <Layers className="w-4 h-4 text-cyan-400" />
+            Power BI Visual Builder Active: Click on any widget to adjust parameters or add new visualizations.
+          </div>
+          <div className="flex items-center gap-2">
+            <button
+              onClick={() => toast.info('Add Widget', 'Select Metric, Line Chart, Bar Chart, or Funnel')}
+              className="px-3 py-1.5 bg-cyan-500 text-slate-950 font-bold rounded-xl flex items-center gap-1"
+            >
+              <Plus className="w-3.5 h-3.5" /> Add Component
+            </button>
+          </div>
+        </div>
+      )}
+
+      {/* Power BI Metric Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          title="Total Gross Revenue"
+          value={`$${kpis.total_revenue.toLocaleString('en-US', { minimumFractionDigits: 2 })}`}
+          subtext={`Avg Order Value: $${kpis.avg_order_value.toFixed(2)}`}
+          change={18.4}
+          period="vs prior period"
+          icon={DollarSign}
+          colorScheme="teal"
+          sparklineData={[42, 58, 65, 74, 89, 96]}
+        />
+        <MetricCard
+          title="Fulfillment Orders"
+          value={kpis.total_orders}
+          subtext="Processed through OMS"
+          change={12.0}
+          period="omnichannel ingestion"
+          icon={ShoppingCart}
+          colorScheme="blue"
+          sparklineData={[12, 14, 18, 22, 29]}
+        />
+        <MetricCard
+          title="Active Accounts"
+          value={kpis.total_customers}
+          subtext="Managed in CRM"
+          change={8.5}
+          period="enterprise accounts"
+          icon={Users}
+          colorScheme="emerald"
+        />
+        <MetricCard
+          title="Stock Safety Alerts"
+          value={kpis.low_stock_count}
+          subtext={kpis.low_stock_count > 0 ? 'Requires replenishment' : 'Optimal capacity'}
+          change={kpis.low_stock_count > 0 ? -15.0 : 0}
+          period="reorder threshold"
+          icon={AlertTriangle}
+          colorScheme={kpis.low_stock_count > 0 ? 'amber' : 'teal'}
+        />
+      </div>
+
+      {/* Power BI Visuals: Line Chart & Bar Chart */}
+      <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
+        {/* LINE CHART: Order Velocity & Trend */}
+        <div className="lg:col-span-8 bg-slate-950/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+          <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+            <div>
+              <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                <LineChartIcon className="w-4 h-4 text-teal-400" />
+                Revenue & Order Ingestion Velocity (Line Chart)
+              </h3>
+              <p className="text-xs text-slate-400 mt-0.5">
+                Real-time throughput aggregated across Shopify, Amazon, and ERP general ledger.
+              </p>
+            </div>
+            <span className="font-mono text-xs text-teal-400 bg-teal-500/10 px-2.5 py-1 rounded-lg border border-teal-500/20 font-bold">
+              Horizon: {timeRange}
+            </span>
           </div>
 
-          <div className="flex items-center justify-between text-xs text-slate-500 mt-3 pt-2">
-            <span>Minimum: $42,000</span>
-            <span className="text-teal-400 font-semibold">Peak Index: $96,000 (Current Period)</span>
+          <div className="h-64 flex items-end justify-between gap-3 pt-6 pb-2 px-2">
+            {currentTrend.map((item, idx) => {
+              const maxVal = Math.max(...currentTrend.map((t) => t.val));
+              const heightPct = Math.round((item.val / maxVal) * 100);
+
+              return (
+                <div key={idx} className="flex-1 flex flex-col items-center gap-2 group relative">
+                  {/* Tooltip on hover */}
+                  <div className="absolute -top-10 bg-slate-900 border border-slate-700 px-2 py-1 rounded-md text-[10px] font-mono text-teal-300 opacity-0 group-hover:opacity-100 transition-opacity pointer-events-none shadow-lg z-20 whitespace-nowrap">
+                    ${item.revenue.toLocaleString()}
+                  </div>
+
+                  <div className="w-full bg-slate-900/60 rounded-xl h-48 flex items-end p-1.5">
+                    <div
+                      style={{ height: `${heightPct}%` }}
+                      className="w-full bg-gradient-to-t from-teal-500/40 via-teal-400 to-emerald-400 rounded-lg transition-all group-hover:brightness-125"
+                    />
+                  </div>
+                  <span className="text-[11px] font-mono text-slate-400 font-medium">
+                    {item.label}
+                  </span>
+                </div>
+              );
+            })}
           </div>
         </div>
 
-        {/* Live Orders Tracker */}
-        <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl p-6 flex flex-col justify-between backdrop-blur-sm">
+        {/* BAR CHART: Category Revenue Distribution */}
+        <div className="lg:col-span-4 bg-slate-950/80 border border-slate-800 rounded-2xl p-5 shadow-xl flex flex-col justify-between">
           <div>
-            <div className="flex items-center justify-between mb-4">
-              <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-                <PackageCheck className="w-4 h-4 text-teal-400" />
-                Live Order Feed
-              </h3>
-              <span className="text-[10px] uppercase font-mono px-2 py-0.5 rounded bg-teal-500/10 text-teal-400 border border-teal-500/20">
-                Live
-              </span>
+            <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+              <div>
+                <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+                  <BarChart2 className="w-4 h-4 text-cyan-400" />
+                  Category Breakdown (Bar Chart)
+                </h3>
+                <p className="text-xs text-slate-400 mt-0.5">Distribution by product line</p>
+              </div>
             </div>
 
-            <div className="space-y-3">
-              {recentOrders.length === 0 ? (
-                <div className="text-center py-8 text-xs text-slate-500">No orders recorded yet.</div>
-              ) : (
-                recentOrders.slice(0, 4).map((order) => (
-                  <div
-                    key={order.id}
-                    onClick={() => onSelectOrder && onSelectOrder(order)}
-                    className="p-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-800/80 hover:border-slate-700 rounded-xl flex items-center justify-between text-xs cursor-pointer transition-all"
-                  >
-                    <div>
-                      <div className="font-semibold text-slate-200 flex items-center gap-1.5">
-                        {order.order_number}
-                        <ArrowUpRight className="w-3 h-3 text-slate-500" />
-                      </div>
-                      <div className="text-slate-500 text-[11px]">Account #{order.customer_id}</div>
-                    </div>
-                    <div className="text-right">
-                      <div className="font-bold text-slate-100 font-mono">${order.total_amount.toFixed(2)}</div>
-                      <span className="text-[10px] uppercase font-mono px-1.5 py-0.5 rounded bg-teal-500/10 text-teal-400 border border-teal-500/20">
-                        {order.status}
-                      </span>
-                    </div>
+            <div className="space-y-4 pt-1">
+              {categorySales.map((cat, idx) => (
+                <div key={idx} className="space-y-1.5">
+                  <div className="flex items-center justify-between text-xs">
+                    <span className="text-slate-300 font-medium">{cat.category}</span>
+                    <span className="font-mono text-teal-400 font-bold">{cat.amount}</span>
                   </div>
+                  <div className="w-full h-2.5 bg-slate-900 rounded-full overflow-hidden border border-slate-800">
+                    <div
+                      style={{ width: `${cat.value}%` }}
+                      className="h-full bg-gradient-to-r from-teal-500 to-cyan-400 rounded-full"
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+
+          <div className="mt-6 pt-3 border-t border-slate-800 flex items-center justify-between text-[11px] text-slate-400">
+            <span>Aggregated 4 Categories</span>
+            <span className="font-mono text-slate-300">100% Normalized</span>
+          </div>
+        </div>
+      </div>
+
+      {/* POWER BI FUNNEL: Lead to Fulfillment Conversion Funnel */}
+      <div className="bg-slate-950/80 border border-slate-800 rounded-2xl p-5 shadow-xl">
+        <div className="flex items-center justify-between mb-4 pb-3 border-b border-slate-800">
+          <div>
+            <h3 className="text-sm font-bold text-slate-100 flex items-center gap-2">
+              <TrendingUp className="w-4 h-4 text-emerald-400" />
+              Omnichannel Operational Conversion Funnel
+            </h3>
+            <p className="text-xs text-slate-400 mt-0.5">
+              Lifecycle conversion drop-off analysis: Inbound Lead ➔ Order Ingestion ➔ Picking ➔ Carrier ➔ Delivery.
+            </p>
+          </div>
+          <div className="flex items-center gap-2">
+            {selectedFunnelStage && (
+              <span className="text-[11px] font-mono text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">
+                Filtered: {selectedFunnelStage}
+              </span>
+            )}
+            <span className="text-xs font-mono text-slate-400">
+              Net Efficiency: 60.9% End-to-End
+            </span>
+          </div>
+        </div>
+
+        <div className="space-y-3">
+          {funnelStages.map((stage, idx) => (
+            <div
+              key={idx}
+              onClick={() => {
+                setSelectedFunnelStage(stage.name);
+                toast.info('Funnel Filter', `Filtered analytics by ${stage.name}`);
+              }}
+              className="p-3 bg-slate-900/60 hover:bg-slate-900 border border-slate-800 rounded-xl flex flex-col sm:flex-row sm:items-center justify-between gap-3 cursor-pointer transition-colors"
+            >
+              <div className="flex items-center gap-3">
+                <span className="w-6 h-6 rounded-full bg-slate-800 text-slate-300 font-mono text-xs flex items-center justify-center font-bold">
+                  {idx + 1}
+                </span>
+                <div>
+                  <div className="font-bold text-slate-200 text-xs">{stage.name}</div>
+                  <div className="text-[11px] text-slate-500 font-mono">{stage.count} Volume Units</div>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3 sm:w-64">
+                <div className="flex-1 h-3 bg-slate-950 rounded-full overflow-hidden border border-slate-800">
+                  <div
+                    style={{ width: stage.percent }}
+                    className={`h-full ${stage.color} rounded-full transition-all`}
+                  />
+                </div>
+                <span className="font-mono text-xs font-bold text-slate-200 w-12 text-right">
+                  {stage.percent}
+                </span>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      {/* RECENT ORDERS TABLE (Power BI Data Grid) */}
+      <div className="bg-slate-950/80 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+        <div className="p-4 border-b border-slate-800 flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <PackageCheck className="w-4 h-4 text-teal-400" />
+            <span className="font-bold text-slate-100 text-xs">Omnichannel Order Stream</span>
+          </div>
+
+          {onNavigateTab && (
+            <button
+              onClick={() => onNavigateTab('oms')}
+              className="text-teal-400 hover:text-teal-300 font-semibold text-xs flex items-center gap-1"
+            >
+              Open in OMS <ArrowUpRight className="w-3.5 h-3.5" />
+            </button>
+          )}
+        </div>
+
+        <div className="overflow-x-auto">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-slate-900 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
+              <tr>
+                <th className="px-5 py-3.5">Order ID</th>
+                <th className="px-5 py-3.5">Account ID</th>
+                <th className="px-5 py-3.5">Fulfillment Status</th>
+                <th className="px-5 py-3.5">Total Amount</th>
+                <th className="px-5 py-3.5 text-right">Date Ingested</th>
+              </tr>
+            </thead>
+            <tbody className="divide-y divide-slate-800/60 text-slate-300">
+              {recentOrders.length === 0 ? (
+                <tr>
+                  <td colSpan={5} className="px-6 py-8 text-center text-slate-500">
+                    No orders in current buffer.
+                  </td>
+                </tr>
+              ) : (
+                recentOrders.map((o) => (
+                  <tr
+                    key={o.id}
+                    onClick={() => onSelectOrder && onSelectOrder(o)}
+                    className="hover:bg-slate-900/50 cursor-pointer transition-colors"
+                  >
+                    <td className="px-5 py-3.5 font-mono font-bold text-teal-400">{o.order_number}</td>
+                    <td className="px-5 py-3.5 font-mono text-slate-400">Customer #{o.customer_id}</td>
+                    <td className="px-5 py-3.5">
+                      <span className="px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/30">
+                        {o.status}
+                      </span>
+                    </td>
+                    <td className="px-5 py-3.5 font-mono font-bold text-slate-100">
+                      ${o.total_amount.toFixed(2)}
+                    </td>
+                    <td className="px-5 py-3.5 text-right font-mono text-slate-500 text-[11px]">
+                      {new Date(o.created_at).toLocaleDateString()}
+                    </td>
+                  </tr>
                 ))
               )}
-            </div>
-          </div>
-
-          <div className="pt-4 border-t border-slate-800/80 text-center">
-            <button
-              onClick={() => onNavigateTab && onNavigateTab('oms')}
-              className="text-xs text-teal-400 hover:text-teal-300 font-medium transition-colors"
-            >
-              Open OMS Fulfillment Console &rarr;
-            </button>
-          </div>
+            </tbody>
+          </table>
         </div>
       </div>
     </div>

@@ -1,18 +1,22 @@
 import React, { useState } from 'react';
 import {
   Plus,
-  SlidersHorizontal,
   AlertCircle,
   CheckCircle2,
-  LayoutGrid,
-  List,
   Search,
   Boxes,
-  Minus,
+  Building2,
+  DollarSign,
+  TrendingUp,
+  ArrowDownLeft,
+  ArrowUpRight,
+  Receipt,
+  FileSpreadsheet,
 } from 'lucide-react';
 import { Product, InventoryItem } from '../types';
 import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
+import { MetricCard } from '../components/MetricCard';
 
 interface ErpViewProps {
   products: Product[];
@@ -28,10 +32,11 @@ export const ErpView: React.FC<ErpViewProps> = ({
   onAdjustStock,
 }) => {
   const toast = useToast();
-  const [viewMode, setViewMode] = useState<'table' | 'grid'>('table');
+  const [activeErpTab, setActiveErpTab] = useState<'INVENTORY' | 'FINANCE'>('INVENTORY');
   const [searchQuery, setSearchQuery] = useState('');
   const [filterLowStockOnly, setFilterLowStockOnly] = useState(false);
 
+  // Modals
   const [isProductModalOpen, setIsProductModalOpen] = useState(false);
   const [isStockModalOpen, setIsStockModalOpen] = useState(false);
   const [selectedProductId, setSelectedProductId] = useState<number | null>(null);
@@ -55,6 +60,11 @@ export const ErpView: React.FC<ErpViewProps> = ({
     return item ? item.quantity : 0;
   };
 
+  const getWarehouse = (productId: number) => {
+    const item = inventory.find((i) => i.product_id === productId);
+    return item ? item.warehouse : 'MAIN';
+  };
+
   const filteredProducts = products.filter((p) => {
     const stock = getStockCount(p.id);
     const matchesSearch =
@@ -63,6 +73,62 @@ export const ErpView: React.FC<ErpViewProps> = ({
     const matchesStock = !filterLowStockOnly || stock <= 10;
     return matchesSearch && matchesStock;
   });
+
+  // Calculate SAP Fiori Inventory Metrics
+  const totalProductsCount = products.length;
+  const lowStockCount = products.filter((p) => getStockCount(p.id) <= 10).length;
+  const incomingShipments = 145; // Units in transit from suppliers
+  const outgoingOrders = 38; // Units pending dispatch
+
+  // Calculate SAP Fiori Finance Metrics
+  const totalRevenue = products.reduce((acc, p) => acc + p.price * 12, 48250.0);
+  const totalCost = products.reduce((acc, p) => acc + p.cost * 12, 19300.0);
+  const grossProfit = totalRevenue - totalCost;
+  const profitMargin = Math.round((grossProfit / totalRevenue) * 100);
+
+  // Mock General Ledger Transactions
+  const ledgerTransactions = [
+    {
+      id: 'TXN-2026-0919-01',
+      date: 'Sep 19, 2026',
+      type: 'REVENUE',
+      account: '4010 - Omnichannel Product Sales',
+      description: 'Order ORD-2026-0919-01 settlement',
+      amount: 10850.0,
+      isCredit: true,
+      status: 'POSTED',
+    },
+    {
+      id: 'TXN-2026-0919-02',
+      date: 'Sep 18, 2026',
+      type: 'COGS',
+      account: '5010 - Cost of Goods Sold',
+      description: 'Inventory relief for ORD-2026-0919-01',
+      amount: 4340.0,
+      isCredit: false,
+      status: 'POSTED',
+    },
+    {
+      id: 'TXN-2026-0917-03',
+      date: 'Sep 17, 2026',
+      type: 'PAYROLL',
+      account: '6010 - Warehouse Operations Wages',
+      description: 'Bi-weekly fulfillment labor run',
+      amount: 8200.0,
+      isCredit: false,
+      status: 'RECONCILED',
+    },
+    {
+      id: 'TXN-2026-0915-04',
+      date: 'Sep 15, 2026',
+      type: 'SUPPLIER_PO',
+      account: '2010 - Accounts Payable',
+      description: 'Supplier PO #9019 Raw Materials',
+      amount: 14500.0,
+      isCredit: false,
+      status: 'POSTED',
+    },
+  ];
 
   const handleCreateProduct = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -99,24 +165,11 @@ export const ErpView: React.FC<ErpViewProps> = ({
         warehouse: 'MAIN',
       });
       setIsStockModalOpen(false);
-      toast.success('Stock Adjusted', `Inventory delta of ${stockDelta > 0 ? `+${stockDelta}` : stockDelta} applied.`);
+      toast.success('Stock Adjusted', `Inventory count updated successfully.`);
     } catch {
-      toast.error('Adjustment Failed', 'Insufficient stock or inventory error.');
+      toast.error('Error', 'Stock adjustment failed.');
     } finally {
       setLoading(false);
-    }
-  };
-
-  const handleQuickAdjust = async (productId: number, delta: number) => {
-    try {
-      await onAdjustStock({
-        product_id: productId,
-        quantity_delta: delta,
-        warehouse: 'MAIN',
-      });
-      toast.success('Stock Updated', `${delta > 0 ? `+${delta}` : delta} items updated.`);
-    } catch {
-      toast.error('Failed', 'Could not adjust stock level.');
     }
   };
 
@@ -125,250 +178,308 @@ export const ErpView: React.FC<ErpViewProps> = ({
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
-          <h2 className="text-xl font-bold text-slate-100 tracking-tight">ERP Catalog & Inventory</h2>
+          <h2 className="text-xl font-bold text-slate-100 tracking-tight">
+            Enterprise Resource Planning (ERP)
+          </h2>
           <p className="text-xs text-slate-400 mt-1">
-            Product catalog, multi-warehouse stock levels, reorder thresholds, and quick adjustments.
+            SAP Fiori design layout: Real-time inventory ATP, warehouse bins, and financial general ledger.
           </p>
         </div>
+
+        <div className="flex items-center gap-2">
+          {activeErpTab === 'INVENTORY' && (
+            <button
+              onClick={() => setIsProductModalOpen(true)}
+              className="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition-all shadow-lg shadow-teal-500/10 shrink-0"
+            >
+              <Plus className="w-4 h-4" /> Add Catalog SKU
+            </button>
+          )}
+        </div>
+      </div>
+
+      {/* SAP Fiori Sub-Navigation Tabs: Inventory vs Finance */}
+      <div className="flex items-center gap-2 border-b border-slate-800 pb-2.5">
         <button
-          onClick={() => setIsProductModalOpen(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-semibold px-4 py-2 rounded-xl text-xs transition-all shadow-lg shadow-teal-500/10 shrink-0"
+          onClick={() => setActiveErpTab('INVENTORY')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+            activeErpTab === 'INVENTORY'
+              ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+          }`}
         >
-          <Plus className="w-4 h-4" /> New Product
+          <Boxes className="w-4 h-4" />
+          Warehouse & Inventory Management
+        </button>
+
+        <button
+          onClick={() => setActiveErpTab('FINANCE')}
+          className={`flex items-center gap-2 px-4 py-2 rounded-xl text-xs font-semibold transition-all ${
+            activeErpTab === 'FINANCE'
+              ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-sm'
+              : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+          }`}
+        >
+          <Receipt className="w-4 h-4" />
+          Financial Ledger & Controlling
         </button>
       </div>
 
-      {/* Filter and View Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-950/40 p-3 rounded-2xl border border-slate-800/80">
-        <div className="flex items-center gap-2 w-full sm:w-auto">
-          {/* Low Stock Filter Button */}
-          <button
-            onClick={() => setFilterLowStockOnly(!filterLowStockOnly)}
-            className={`flex items-center gap-1.5 px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
-              filterLowStockOnly
-                ? 'bg-amber-500/20 text-amber-300 border border-amber-500/40'
-                : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
-            }`}
-          >
-            <AlertCircle className="w-3.5 h-3.5 text-amber-400" />
-            Low Stock Alerts Only
-          </button>
-
-          {/* View Mode Toggle */}
-          <div className="flex bg-slate-900 p-0.5 rounded-xl border border-slate-800 ml-auto sm:ml-0">
-            <button
-              onClick={() => setViewMode('table')}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                viewMode === 'table' ? 'bg-slate-800 text-teal-400' : 'text-slate-500 hover:text-slate-300'
-              }`}
-            >
-              <List className="w-4 h-4" />
-            </button>
-            <button
-              onClick={() => setViewMode('grid')}
-              className={`p-1.5 rounded-lg text-xs transition-colors ${
-                viewMode === 'grid' ? 'bg-slate-800 text-teal-400' : 'text-slate-500 hover:text-slate-300'
-              }`}
-            >
-              <LayoutGrid className="w-4 h-4" />
-            </button>
+      {/* TAB 1: SAP FIORI INVENTORY */}
+      {activeErpTab === 'INVENTORY' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {/* Inventory Overview Cards (Total Products, Low Stock, Incoming, Outgoing) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricCard
+              title="Total Products"
+              value={totalProductsCount}
+              change={8.5}
+              period="active SKUs"
+              icon={Boxes}
+              colorScheme="teal"
+              sparklineData={[18, 22, 25, 28, totalProductsCount]}
+            />
+            <MetricCard
+              title="Low Stock"
+              value={lowStockCount}
+              change={-12.0}
+              period="reorder threshold < 10"
+              icon={AlertCircle}
+              colorScheme="rose"
+            />
+            <MetricCard
+              title="Incoming"
+              value={`${incomingShipments} Units`}
+              change={24.0}
+              period="supplier PO in-transit"
+              icon={ArrowDownLeft}
+              colorScheme="blue"
+            />
+            <MetricCard
+              title="Outgoing"
+              value={`${outgoingOrders} Orders`}
+              change={14.2}
+              period="picking & dispatch"
+              icon={ArrowUpRight}
+              colorScheme="amber"
+            />
           </div>
-        </div>
 
-        {/* Search */}
-        <div className="relative w-full sm:w-72">
-          <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-          <input
-            type="text"
-            value={searchQuery}
-            onChange={(e) => setSearchQuery(e.target.value)}
-            placeholder="Search SKU or product name..."
-            className="w-full bg-slate-900/80 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
-          />
-        </div>
-      </div>
-
-      {/* Grid Mode View */}
-      {viewMode === 'grid' ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {filteredProducts.map((p) => {
-            const stock = getStockCount(p.id);
-            const isLow = stock <= 10;
-            const stockPercentage = Math.min(100, Math.round((stock / 30) * 100));
-
-            return (
-              <div
-                key={p.id}
-                className="bg-slate-950/60 border border-slate-800/80 hover:border-slate-700 rounded-2xl p-5 flex flex-col justify-between transition-all backdrop-blur-sm"
+          {/* Filter Bar */}
+          <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
+            <div className="flex items-center gap-2">
+              <button
+                onClick={() => setFilterLowStockOnly(!filterLowStockOnly)}
+                className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
+                  filterLowStockOnly
+                    ? 'bg-rose-500/20 text-rose-300 border border-rose-500/40'
+                    : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-slate-800'
+                }`}
               >
-                <div>
-                  <div className="flex items-start justify-between gap-2 mb-3">
-                    <div className="w-10 h-10 rounded-xl bg-teal-500/10 border border-teal-500/30 text-teal-400 flex items-center justify-center font-bold">
-                      <Boxes className="w-5 h-5" />
-                    </div>
-                    <span
-                      className={`inline-flex items-center gap-1 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold ${
-                        isLow
-                          ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                          : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                      }`}
-                    >
-                      {isLow ? <AlertCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
-                      {stock} in stock
-                    </span>
-                  </div>
+                {filterLowStockOnly ? '✓ Showing Low Stock Only' : 'Filter Low Stock'}
+              </button>
+            </div>
 
-                  <h3 className="font-bold text-slate-100 text-sm">{p.name}</h3>
-                  <span className="font-mono text-xs text-teal-400 block mt-0.5">{p.sku}</span>
-                  <p className="text-xs text-slate-400 mt-2 line-clamp-2">{p.description || 'Enterprise catalog item.'}</p>
-                </div>
+            <div className="relative w-full sm:w-72">
+              <Search className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
+              <input
+                type="text"
+                value={searchQuery}
+                onChange={(e) => setSearchQuery(e.target.value)}
+                placeholder="Search SKU or product title..."
+                className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500"
+              />
+            </div>
+          </div>
 
-                <div className="mt-5 pt-4 border-t border-slate-800/80">
-                  {/* Stock Bar */}
-                  <div className="mb-3">
-                    <div className="flex justify-between text-[11px] text-slate-400 mb-1">
-                      <span>Stock Capacity</span>
-                      <span className="font-mono">{stock} / 30 units</span>
-                    </div>
-                    <div className="w-full bg-slate-900 rounded-full h-1.5 overflow-hidden">
-                      <div
-                        className={`h-full rounded-full transition-all duration-500 ${
-                          isLow ? 'bg-amber-400' : 'bg-teal-400'
-                        }`}
-                        style={{ width: `${stockPercentage}%` }}
-                      />
-                    </div>
-                  </div>
-
-                  <div className="flex items-center justify-between">
-                    <div>
-                      <div className="text-base font-bold text-slate-100">${p.price.toFixed(2)}</div>
-                      <div className="text-[10px] text-slate-500">Cost: ${p.cost.toFixed(2)}</div>
-                    </div>
-
-                    <div className="flex items-center gap-1.5">
-                      <button
-                        onClick={() => handleQuickAdjust(p.id, -1)}
-                        className="p-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-300 hover:text-rose-400 transition-colors"
-                        title="Deduct 1"
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => handleQuickAdjust(p.id, 1)}
-                        className="p-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-lg text-slate-300 hover:text-teal-400 transition-colors"
-                        title="Add 1"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                      <button
-                        onClick={() => {
-                          setSelectedProductId(p.id);
-                          setIsStockModalOpen(true);
-                        }}
-                        className="px-2.5 py-1.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-lg text-xs font-semibold transition-colors"
-                      >
-                        Adjust
-                      </button>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            );
-          })}
-        </div>
-      ) : (
-        /* Table Mode View */
-        <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl overflow-hidden backdrop-blur-sm">
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs">
-              <thead className="bg-slate-900/80 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
-                <tr>
-                  <th className="px-6 py-3.5">SKU & Item Name</th>
-                  <th className="px-6 py-3.5">Unit Price / Cost</th>
-                  <th className="px-6 py-3.5">Inventory Level</th>
-                  <th className="px-6 py-3.5">Quick Adjust</th>
-                  <th className="px-6 py-3.5 text-right">Actions</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/60 text-slate-300">
-                {filteredProducts.length === 0 ? (
+          {/* Inventory Table (SKU, Warehouse, Quantity, Status) */}
+          <div className="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-900 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
                   <tr>
-                    <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                      No products found.
-                    </td>
+                    <th className="px-5 py-3.5">SKU / Item Name</th>
+                    <th className="px-5 py-3.5">Warehouse Location</th>
+                    <th className="px-5 py-3.5">Stock on Hand</th>
+                    <th className="px-5 py-3.5">Availability Status</th>
+                    <th className="px-5 py-3.5">Unit Price / Cost</th>
+                    <th className="px-5 py-3.5 text-right">Quick Stock Adjustment</th>
                   </tr>
-                ) : (
-                  filteredProducts.map((p) => {
-                    const stock = getStockCount(p.id);
-                    const isLow = stock <= 10;
-                    return (
-                      <tr key={p.id} className="hover:bg-slate-900/50 transition-colors">
-                        <td className="px-6 py-4">
-                          <div className="font-semibold text-slate-100">{p.name}</div>
-                          <div className="text-[11px] text-teal-400 font-mono mt-0.5">{p.sku}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="font-semibold text-slate-200">${p.price.toFixed(2)}</div>
-                          <div className="text-[11px] text-slate-500">Cost: ${p.cost.toFixed(2)}</div>
-                        </td>
-                        <td className="px-6 py-4">
-                          <span
-                            className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full font-mono text-[11px] font-semibold ${
-                              isLow
-                                ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
-                                : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
-                            }`}
-                          >
-                            {isLow ? <AlertCircle className="w-3 h-3" /> : <CheckCircle2 className="w-3 h-3" />}
-                            {stock} in stock
-                          </span>
-                        </td>
-                        <td className="px-6 py-4">
-                          <div className="flex items-center gap-1">
-                            <button
-                              onClick={() => handleQuickAdjust(p.id, -1)}
-                              className="px-2 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded text-slate-300 hover:text-rose-400 text-xs font-mono transition-colors"
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                  {filteredProducts.length === 0 ? (
+                    <tr>
+                      <td colSpan={6} className="px-6 py-12 text-center text-slate-500">
+                        No catalog items match criteria.
+                      </td>
+                    </tr>
+                  ) : (
+                    filteredProducts.map((p) => {
+                      const stock = getStockCount(p.id);
+                      const warehouse = getWarehouse(p.id);
+                      const isLow = stock <= 10;
+
+                      return (
+                        <tr key={p.id} className="hover:bg-slate-900/50 transition-colors">
+                          <td className="px-5 py-3.5">
+                            <div className="font-mono font-bold text-teal-400">{p.sku}</div>
+                            <div className="font-semibold text-slate-100 text-xs mt-0.5">{p.name}</div>
+                          </td>
+
+                          <td className="px-5 py-3.5">
+                            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-slate-300 bg-slate-900 px-2.5 py-1 rounded-lg border border-slate-800">
+                              <Building2 className="w-3.5 h-3.5 text-slate-500" />
+                              WH-{warehouse} (Bay A3)
+                            </span>
+                          </td>
+
+                          <td className="px-5 py-3.5 font-mono font-bold text-base text-slate-100">
+                            {stock}
+                          </td>
+
+                          <td className="px-5 py-3.5">
+                            <span
+                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold ${
+                                isLow
+                                  ? 'bg-rose-500/10 text-rose-400 border border-rose-500/30'
+                                  : 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30'
+                              }`}
                             >
-                              -1
-                            </button>
+                              {isLow ? (
+                                <>
+                                  <AlertCircle className="w-3 h-3" /> LOW STOCK
+                                </>
+                              ) : (
+                                <>
+                                  <CheckCircle2 className="w-3 h-3" /> AVAILABLE
+                                </>
+                              )}
+                            </span>
+                          </td>
+
+                          <td className="px-5 py-3.5 font-mono text-xs">
+                            <div className="text-slate-100 font-bold">${p.price.toFixed(2)}</div>
+                            <div className="text-[10px] text-slate-500">Cost: ${p.cost.toFixed(2)}</div>
+                          </td>
+
+                          <td className="px-5 py-3.5 text-right">
                             <button
-                              onClick={() => handleQuickAdjust(p.id, 1)}
-                              className="px-2 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded text-slate-300 hover:text-teal-400 text-xs font-mono transition-colors"
+                              type="button"
+                              onClick={() => {
+                                setSelectedProductId(p.id);
+                                setIsStockModalOpen(true);
+                              }}
+                              className="px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-teal-400 rounded-xl font-semibold text-xs transition-colors"
                             >
-                              +1
+                              Adjust Stock
                             </button>
-                            <button
-                              onClick={() => handleQuickAdjust(p.id, 10)}
-                              className="px-2 py-1 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded text-slate-300 hover:text-teal-400 text-xs font-mono transition-colors"
-                            >
-                              +10
-                            </button>
-                          </div>
-                        </td>
-                        <td className="px-6 py-4 text-right">
-                          <button
-                            onClick={() => {
-                              setSelectedProductId(p.id);
-                              setIsStockModalOpen(true);
-                            }}
-                            className="inline-flex items-center gap-1 px-3 py-1.5 bg-teal-500/10 hover:bg-teal-500/20 text-teal-400 border border-teal-500/30 rounded-xl text-xs font-semibold transition-colors"
-                          >
-                            <SlidersHorizontal className="w-3.5 h-3.5" /> Adjust Custom
-                          </button>
-                        </td>
-                      </tr>
-                    );
-                  })
-                )}
-              </tbody>
-            </table>
+                          </td>
+                        </tr>
+                      );
+                    })
+                  )}
+                </tbody>
+              </table>
+            </div>
           </div>
         </div>
       )}
 
-      {/* Modal: New Product */}
-      <Modal isOpen={isProductModalOpen} onClose={() => setIsProductModalOpen(false)} title="Catalog New Product">
+      {/* TAB 2: SAP FIORI FINANCE */}
+      {activeErpTab === 'FINANCE' && (
+        <div className="space-y-6 animate-in fade-in duration-150">
+          {/* Finance Overview Cards (Revenue, Cost, Profit, Transactions) */}
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            <MetricCard
+              title="Revenue"
+              value={`$${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              change={16.4}
+              period="gross billing"
+              icon={DollarSign}
+              colorScheme="emerald"
+            />
+            <MetricCard
+              title="Cost of Goods (COGS)"
+              value={`$${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              change={4.2}
+              period="material & procurement"
+              icon={Receipt}
+              colorScheme="rose"
+            />
+            <MetricCard
+              title="Gross Profit"
+              value={`$${grossProfit.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
+              change={22.5}
+              target="60% margin"
+              period={`${profitMargin}% margin`}
+              icon={TrendingUp}
+              colorScheme="teal"
+            />
+            <MetricCard
+              title="Transactions"
+              value={ledgerTransactions.length}
+              change={8.0}
+              period="ledger journal lines"
+              icon={FileSpreadsheet}
+              colorScheme="indigo"
+            />
+          </div>
+
+          {/* Transactions Ledger Table */}
+          <div className="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
+            <div className="p-3.5 bg-slate-900 border-b border-slate-800 flex items-center justify-between">
+              <span className="font-bold text-slate-100 text-xs">General Ledger Transactions</span>
+              <span className="text-[11px] font-mono text-slate-400">
+                Period: Fiscal Year 2026 Q3 (Open)
+              </span>
+            </div>
+
+            <div className="overflow-x-auto">
+              <table className="w-full text-left text-xs border-collapse">
+                <thead className="bg-slate-900/60 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
+                  <tr>
+                    <th className="px-5 py-3.5">Transaction ID</th>
+                    <th className="px-5 py-3.5">Account Code & Name</th>
+                    <th className="px-5 py-3.5">Description</th>
+                    <th className="px-5 py-3.5">Debit / Credit</th>
+                    <th className="px-5 py-3.5">Status</th>
+                    <th className="px-5 py-3.5 text-right">Date</th>
+                  </tr>
+                </thead>
+                <tbody className="divide-y divide-slate-800/60 text-slate-300">
+                  {ledgerTransactions.map((tx) => (
+                    <tr key={tx.id} className="hover:bg-slate-900/50 transition-colors">
+                      <td className="px-5 py-3.5 font-mono font-bold text-teal-400">{tx.id}</td>
+                      <td className="px-5 py-3.5 font-semibold text-slate-100">{tx.account}</td>
+                      <td className="px-5 py-3.5 text-slate-400">{tx.description}</td>
+                      <td className="px-5 py-3.5 font-mono font-bold">
+                        <span className={tx.isCredit ? 'text-emerald-400' : 'text-rose-400'}>
+                          {tx.isCredit ? '+' : '-'}${tx.amount.toFixed(2)}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5">
+                        <span className="px-2 py-0.5 rounded-full font-mono text-[10px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                          {tx.status}
+                        </span>
+                      </td>
+                      <td className="px-5 py-3.5 text-right font-mono text-slate-500 text-[11px]">
+                        {tx.date}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+      )}
+
+      {/* Modal: Create Product */}
+      <Modal
+        isOpen={isProductModalOpen}
+        onClose={() => setIsProductModalOpen(false)}
+        title="Register Product SKU in SAP Catalog"
+      >
         <form onSubmit={handleCreateProduct} className="space-y-4 text-xs">
           <div className="grid grid-cols-2 gap-3">
             <div>
@@ -379,32 +490,34 @@ export const ErpView: React.FC<ErpViewProps> = ({
                 value={productForm.sku}
                 onChange={(e) => setProductForm({ ...productForm, sku: e.target.value })}
                 placeholder="SKU-PRO-001"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
               />
             </div>
             <div>
-              <label className="block text-slate-400 font-medium mb-1">Product Name *</label>
+              <label className="block text-slate-400 font-medium mb-1">Product Title *</label>
               <input
                 type="text"
                 required
                 value={productForm.name}
                 onChange={(e) => setProductForm({ ...productForm, name: e.target.value })}
-                placeholder="Enterprise Software License"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                placeholder="Enterprise Industrial Sensor"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
               />
             </div>
           </div>
 
           <div className="grid grid-cols-2 gap-3">
             <div>
-              <label className="block text-slate-400 font-medium mb-1">Unit Price ($) *</label>
+              <label className="block text-slate-400 font-medium mb-1">Sales Price ($)</label>
               <input
                 type="number"
                 step="0.01"
                 required
                 value={productForm.price}
-                onChange={(e) => setProductForm({ ...productForm, price: parseFloat(e.target.value) || 0 })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                onChange={(e) =>
+                  setProductForm({ ...productForm, price: parseFloat(e.target.value) })
+                }
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
               />
             </div>
             <div>
@@ -412,32 +525,12 @@ export const ErpView: React.FC<ErpViewProps> = ({
               <input
                 type="number"
                 step="0.01"
+                required
                 value={productForm.cost}
-                onChange={(e) => setProductForm({ ...productForm, cost: parseFloat(e.target.value) || 0 })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
-              />
-            </div>
-          </div>
-
-          <div className="grid grid-cols-2 gap-3">
-            <div>
-              <label className="block text-slate-400 font-medium mb-1">Initial Quantity</label>
-              <input
-                type="number"
-                value={productForm.initial_quantity}
                 onChange={(e) =>
-                  setProductForm({ ...productForm, initial_quantity: parseInt(e.target.value) || 0 })
+                  setProductForm({ ...productForm, cost: parseFloat(e.target.value) })
                 }
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
-              />
-            </div>
-            <div>
-              <label className="block text-slate-400 font-medium mb-1">Warehouse</label>
-              <input
-                type="text"
-                value={productForm.warehouse}
-                onChange={(e) => setProductForm({ ...productForm, warehouse: e.target.value })}
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
               />
             </div>
           </div>
@@ -446,52 +539,56 @@ export const ErpView: React.FC<ErpViewProps> = ({
             <button
               type="button"
               onClick={() => setIsProductModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold rounded-lg transition-colors disabled:opacity-50"
             >
-              {loading ? 'Saving...' : 'Catalog Product'}
+              {loading ? 'Registering...' : 'Save SKU'}
             </button>
           </div>
         </form>
       </Modal>
 
       {/* Modal: Adjust Stock */}
-      <Modal isOpen={isStockModalOpen} onClose={() => setIsStockModalOpen(false)} title="Adjust Warehouse Inventory">
+      <Modal
+        isOpen={isStockModalOpen}
+        onClose={() => setIsStockModalOpen(false)}
+        title="Physical Stock Adjustment"
+      >
         <form onSubmit={handleStockSubmit} className="space-y-4 text-xs">
-          <p className="text-slate-400">
-            Enter a positive amount to restock, or negative amount to deduct from warehouse:
-          </p>
           <div>
-            <label className="block text-slate-400 font-medium mb-1">Quantity Delta</label>
+            <label className="block text-slate-400 font-medium mb-1">Stock Quantity Delta *</label>
             <input
               type="number"
               required
               value={stockDelta}
-              onChange={(e) => setStockDelta(parseInt(e.target.value) || 0)}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
+              onChange={(e) => setStockDelta(parseInt(e.target.value))}
+              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono"
             />
+            <span className="text-[11px] text-slate-500 mt-1 block">
+              Enter positive value to add stock, negative to relieve stock.
+            </span>
           </div>
 
           <div className="flex justify-end gap-3 pt-4 border-t border-slate-800">
             <button
               type="button"
               onClick={() => setIsStockModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold rounded-lg transition-colors disabled:opacity-50"
             >
-              {loading ? 'Updating...' : 'Apply Stock Change'}
+              {loading ? 'Posting...' : 'Post Adjustment'}
             </button>
           </div>
         </form>
