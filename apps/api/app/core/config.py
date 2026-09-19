@@ -38,6 +38,35 @@ class Settings(BaseSettings):
         "http://127.0.0.1:5173",
     ]
 
+    # Real Provider Integrations (Stripe)
+    STRIPE_SECRET_KEY: str = ""
+    STRIPE_PUBLISHABLE_KEY: str = ""
+    STRIPE_WEBHOOK_SECRET: str = ""
+
+    # Real Provider Integrations (Shopify)
+    SHOPIFY_SHOP_DOMAIN: str = ""
+    SHOPIFY_ADMIN_API_ACCESS_TOKEN: str = ""
+    SHOPIFY_API_VERSION: str = "2024-07"
+
+    # Real Provider Integrations (Slack)
+    SLACK_WEBHOOK_URL: str = ""
+    SLACK_BOT_TOKEN: str = ""
+    SLACK_DEFAULT_CHANNEL: str = "#operations-alerts"
+
+    # Real Provider Integrations (Telegram)
+    TELEGRAM_BOT_TOKEN: str = ""
+    TELEGRAM_CHAT_ID: str = ""
+
+    # Real Provider Integrations (SMTP / Email)
+    SMTP_HOST: str = "smtp.gmail.com"
+    SMTP_PORT: int = 587
+    SMTP_USER: str = ""
+    SMTP_PASSWORD: str = ""
+    SMTP_FROM_EMAIL: str = "notifications@ubop.internal"
+
+    # AI Integration
+    OPENAI_API_KEY: str = ""
+
     model_config = SettingsConfigDict(
         env_file=_resolve_root_env(),
         env_file_encoding="utf-8",
