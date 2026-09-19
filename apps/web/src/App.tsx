@@ -8,6 +8,7 @@ import { OmsView } from './views/OmsView';
 import { ProvidersHubView } from './views/ProvidersHubView';
 import { WorkflowView } from './views/WorkflowView';
 import { SettingsView } from './views/SettingsView';
+import { BiView } from './views/BiView';
 import { ToastProvider } from './components/Toast';
 import { CommandPalette } from './components/CommandPalette';
 import {
@@ -512,19 +513,21 @@ const MainApp: React.FC = () => {
   const getTabTitle = () => {
     switch (currentTab) {
       case 'dashboard':
-        return 'Executive Overview & Analytics';
+        return 'Command Center: Real-Time Executive Operations';
       case 'crm':
-        return 'Customer Relationship (CRM)';
+        return 'CRM: Customer 360 & Pipeline Management';
       case 'erp':
-        return 'ERP, Master Catalog & Warehousing';
+        return 'ERP: Master Inventory & Procurement';
       case 'oms':
-        return 'Order Management & Fulfillment';
+        return 'OMS: Order Orchestration & Fulfillment';
+      case 'bi':
+        return 'BI: Business Intelligence & Telemetry';
       case 'providers':
         return 'Integrations & Provider Ecosystem';
       case 'workflow':
-        return 'Workflow & Event Automations Engine';
+        return 'Workflow & Event Automation Engine';
       case 'settings':
-        return 'Platform Architecture & Topology';
+        return 'Platform Administration & Topology';
       default:
         return 'UBOP Platform';
     }
@@ -589,6 +592,16 @@ const MainApp: React.FC = () => {
               products={products}
               onCreateOrder={handleCreateOrder}
               onUpdateStatus={handleUpdateOrderStatus}
+            />
+          )}
+
+          {currentTab === 'bi' && (
+            <BiView
+              kpis={kpis}
+              orders={orders}
+              customers={customers}
+              products={products}
+              inventory={inventory}
             />
           )}
 

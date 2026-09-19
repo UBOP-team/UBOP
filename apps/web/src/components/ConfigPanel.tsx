@@ -38,15 +38,15 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
   isSaving = false,
 }) => {
   return (
-    <div className="bg-slate-950/90 border border-slate-800 rounded-2xl p-6 space-y-6 text-xs text-slate-300 shadow-xl">
+    <div className="bg-white border border-slate-200/90 rounded-2xl p-6 space-y-6 text-xs text-slate-700 shadow-xs">
       {/* Header */}
-      <div className="flex items-start justify-between gap-4 pb-4 border-b border-slate-800">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-4 border-b border-slate-100">
         <div>
-          <h3 className="text-base font-bold text-slate-100 flex items-center gap-2">
-            <Sliders className="w-4 h-4 text-teal-400" />
+          <h3 className="text-sm font-bold text-slate-900 flex items-center gap-2">
+            <Sliders className="w-4 h-4 text-teal-600" />
             {title}
           </h3>
-          {subtitle && <p className="text-slate-400 text-xs mt-1">{subtitle}</p>}
+          {subtitle && <p className="text-slate-500 text-xs mt-0.5">{subtitle}</p>}
         </div>
 
         <div className="flex items-center gap-2">
@@ -54,9 +54,9 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
             <button
               type="button"
               onClick={onReset}
-              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-800 rounded-xl text-slate-400 hover:text-slate-200 transition-colors"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-50 hover:bg-slate-100 border border-slate-200 text-slate-600 hover:text-slate-900 rounded-lg transition-colors font-medium text-xs shadow-xs"
             >
-              <RotateCcw className="w-3.5 h-3.5" /> Reset
+              <RotateCcw className="w-3.5 h-3.5 text-slate-400" /> Reset Defaults
             </button>
           )}
 
@@ -64,10 +64,18 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
             type="button"
             onClick={onSave}
             disabled={isSaving}
-            className="flex items-center gap-1.5 px-4 py-1.5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold rounded-xl shadow-md shadow-teal-500/10 transition-all disabled:opacity-50"
+            className="flex items-center gap-1.5 px-4 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg shadow-xs transition-colors disabled:opacity-50 text-xs"
           >
-            <Save className="w-3.5 h-3.5" />
-            {isSaving ? 'Persisting...' : 'Save Changes'}
+            {isSaving ? (
+              <>
+                <span className="w-3.5 h-3.5 border-2 border-white/30 border-t-white rounded-full animate-spin" />
+                Saving...
+              </>
+            ) : (
+              <>
+                <Save className="w-3.5 h-3.5" /> Save Changes
+              </>
+            )}
           </button>
         </div>
       </div>
@@ -75,9 +83,9 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
       {/* Sections */}
       <div className="space-y-6">
         {sections.map((section, secIdx) => (
-          <div key={secIdx} className="space-y-4">
-            <div>
-              <h4 className="text-xs font-mono uppercase font-bold tracking-wider text-teal-400">
+          <div key={secIdx} className="space-y-3">
+            <div className="pb-1">
+              <h4 className="text-xs font-mono uppercase font-bold tracking-wider text-slate-500">
                 {section.title}
               </h4>
               {section.description && (
@@ -85,30 +93,43 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
               )}
             </div>
 
-            <div className="space-y-3">
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
               {section.fields.map((field) => (
                 <div
                   key={field.id}
-                  className="p-3.5 bg-slate-900/60 border border-slate-800/80 rounded-xl space-y-1.5"
+                  className={`p-3.5 bg-slate-50/80 hover:bg-slate-50 border border-slate-200/80 rounded-xl space-y-2 transition-colors ${
+                    field.type === 'textarea' ? 'md:col-span-2' : ''
+                  }`}
                 >
-                  <div className="flex items-center justify-between gap-4">
+                  <div className="flex items-start justify-between gap-3">
                     <div>
-                      <label className="font-semibold text-slate-200 block text-xs">
+                      <label className="font-semibold text-slate-900 block text-xs">
                         {field.label}
                       </label>
                       {field.description && (
-                        <p className="text-slate-500 text-[11px]">{field.description}</p>
+                        <p className="text-slate-500 text-[11px] mt-0.5 leading-relaxed">
+                          {field.description}
+                        </p>
                       )}
                     </div>
 
                     {field.type === 'toggle' && (
-                      <input
-                        type="checkbox"
-                        checked={!!field.value}
-                        onChange={(e) => onChangeField(secIdx, field.id, e.target.checked)}
+                      <button
+                        type="button"
+                        role="switch"
+                        aria-checked={!!field.value}
+                        onClick={() => !field.disabled && onChangeField(secIdx, field.id, !field.value)}
                         disabled={field.disabled}
-                        className="w-4 h-4 accent-teal-500 cursor-pointer"
-                      />
+                        className={`w-10 h-5.5 rounded-full p-0.5 transition-colors duration-200 ease-in-out relative shrink-0 ${
+                          field.value ? 'bg-teal-600' : 'bg-slate-300'
+                        } ${field.disabled ? 'opacity-50 cursor-not-allowed' : 'cursor-pointer'}`}
+                      >
+                        <span
+                          className={`block w-4.5 h-4.5 bg-white rounded-full shadow-xs transition-transform duration-200 ease-in-out ${
+                            field.value ? 'translate-x-4.5' : 'translate-x-0'
+                          }`}
+                        />
+                      </button>
                     )}
                   </div>
 
@@ -119,7 +140,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                       onChange={(e) => onChangeField(secIdx, field.id, e.target.value)}
                       placeholder={field.placeholder}
                       disabled={field.disabled}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono text-xs"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 font-mono text-xs shadow-xs"
                     />
                   )}
 
@@ -130,7 +151,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                       onChange={(e) => onChangeField(secIdx, field.id, e.target.value)}
                       placeholder={field.placeholder}
                       disabled={field.disabled}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono text-xs"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 font-mono text-xs shadow-xs"
                     />
                   )}
 
@@ -141,7 +162,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                       onChange={(e) => onChangeField(secIdx, field.id, Number(e.target.value))}
                       placeholder={field.placeholder}
                       disabled={field.disabled}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 font-mono text-xs"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 font-mono text-xs shadow-xs"
                     />
                   )}
 
@@ -150,7 +171,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                       value={field.value ?? ''}
                       onChange={(e) => onChangeField(secIdx, field.id, e.target.value)}
                       disabled={field.disabled}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500 text-xs"
+                      className="w-full bg-white border border-slate-200 rounded-lg px-3 py-1.5 text-slate-800 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 text-xs shadow-xs"
                     >
                       {field.options.map((opt) => (
                         <option key={opt.value} value={opt.value}>
@@ -167,7 +188,7 @@ export const ConfigPanel: React.FC<ConfigPanelProps> = ({
                       onChange={(e) => onChangeField(secIdx, field.id, e.target.value)}
                       placeholder={field.placeholder}
                       disabled={field.disabled}
-                      className="w-full bg-slate-950 border border-slate-800 rounded-xl p-3 text-teal-400 focus:outline-none focus:border-teal-500 font-mono text-xs"
+                      className="w-full bg-white border border-slate-200 rounded-lg p-3 text-slate-800 placeholder-slate-400 focus:outline-none focus:ring-1 focus:ring-teal-500 focus:border-teal-500 font-mono text-xs shadow-xs"
                     />
                   )}
                 </div>

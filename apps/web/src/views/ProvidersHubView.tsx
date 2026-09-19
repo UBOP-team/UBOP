@@ -115,26 +115,41 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
     setTimeout(() => setCopiedField(null), 2000);
   };
 
-  const handleTestConnection = (provider: IntegrationProvider) => {
+  const handleTestConnection = async (provider: IntegrationProvider) => {
     setTestingId(provider.id);
-    setTimeout(() => {
-      setTestingId(null);
-      const simulatedLatency = Math.floor(Math.random() * 30) + 15;
-      const updated: IntegrationProvider = {
-        ...provider,
-        status: 'CONNECTED',
-        latencyMs: simulatedLatency,
-        lastTested: 'Just now',
-      };
-      onUpdateProvider(updated);
-      if (selectedProvider?.id === provider.id) {
-        setSelectedProvider(updated);
+    try {
+      const res = await fetch(`/api/v1/providers/ping/${provider.id}`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+      });
+
+      if (res.ok) {
+        const pingResult = await res.json();
+        const latency = pingResult.latency_ms || 18;
+        const updated: IntegrationProvider = {
+          ...provider,
+          status: 'CONNECTED',
+          latencyMs: latency,
+          lastTested: 'Just now',
+        };
+        onUpdateProvider(updated);
+        if (selectedProvider?.id === provider.id) {
+          setSelectedProvider(updated);
+        }
+        toast.success(
+          `${provider.name} Ping Passed`,
+          `${pingResult.message} (${latency}ms roundtrip)`
+        );
+        return;
       }
-      toast.success(
-        `${provider.name} Connected`,
-        `Handshake successful! Response latency: ${simulatedLatency}ms.`
-      );
-    }, 800);
+
+      const err = await res.json().catch(() => ({ detail: 'Ping error' }));
+      toast.error(`${provider.name} Ping Failed`, err.detail || 'Connection handshake failed.');
+    } catch (err: any) {
+      toast.error(`${provider.name} Unreachable`, err.message || 'Network error.');
+    } finally {
+      setTestingId(null);
+    }
   };
 
   const handleToggleAutoSync = (provider: IntegrationProvider) => {

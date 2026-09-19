@@ -6,10 +6,11 @@ import {
   ShoppingCart,
   GitFork,
   Radio,
-  Settings,
   ChevronLeft,
   ChevronRight,
   ChevronsUpDown,
+  BarChart3,
+  ShieldCheck,
 } from 'lucide-react';
 
 interface SidebarProps {
@@ -25,22 +26,29 @@ export const Sidebar: React.FC<SidebarProps> = ({
 }) => {
   const [isCollapsed, setIsCollapsed] = useState(false);
 
-  const coreNav = [
-    { id: 'dashboard', label: 'Overview', icon: LayoutDashboard },
-    { id: 'oms', label: 'Orders', icon: ShoppingCart },
-    { id: 'erp', label: 'Inventory', icon: Boxes },
-    { id: 'crm', label: 'Customers', icon: Users },
+  // Command Center
+  const commandCenterNav = [
+    { id: 'dashboard', label: 'Command Center', icon: LayoutDashboard },
   ];
 
-  const platformNav = [
+  // Business Modules (Section 2 of Enterprise Spec: CRM, OMS, ERP, BI, Workflow)
+  const businessModulesNav = [
+    { id: 'crm', label: 'CRM (Customers)', icon: Users },
+    { id: 'oms', label: 'OMS (Orders)', icon: ShoppingCart },
+    { id: 'erp', label: 'ERP (Inventory)', icon: Boxes },
+    { id: 'bi', label: 'BI (Analytics)', icon: BarChart3 },
     { id: 'workflow', label: 'Workflows', icon: GitFork },
+  ];
+
+  // Integrations & Administration
+  const systemNav = [
     {
       id: 'providers',
       label: 'Integrations',
       icon: Radio,
       badge: `${connectedProvidersCount} live`,
     },
-    { id: 'settings', label: 'Settings', icon: Settings },
+    { id: 'settings', label: 'Administration', icon: ShieldCheck },
   ];
 
   return (
@@ -50,7 +58,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       }`}
     >
       <div>
-        {/* Workspace Switcher (Linear style) */}
+        {/* Workspace Switcher */}
         <div className="flex items-center justify-between pb-3 mb-3 border-b border-slate-100">
           <div className="flex items-center gap-2.5 overflow-hidden flex-1 min-w-0">
             <div className="w-8 h-8 rounded-lg bg-slate-900 flex items-center justify-center font-bold text-white shadow-xs shrink-0 text-xs">
@@ -66,7 +74,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
                 </div>
                 <div className="flex items-center gap-1.5 mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-emerald-500 animate-pulse" />
-                  <span className="text-[10px] text-slate-400 font-mono">Production</span>
+                  <span className="text-[10px] text-slate-400 font-mono">Production OS</span>
                 </div>
               </div>
             )}
@@ -84,15 +92,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
 
         {/* Tree Navigation */}
         <nav className="space-y-4 text-xs">
-          {/* Operations Core */}
+          {/* 1. Command Center */}
           <div>
             {!isCollapsed && (
               <div className="text-[10px] font-mono uppercase text-slate-400 px-2.5 py-1 font-semibold tracking-wider">
-                Operations
+                Overview
               </div>
             )}
             <div className="space-y-0.5 mt-0.5">
-              {coreNav.map((item) => {
+              {commandCenterNav.map((item) => {
                 const Icon = item.icon;
                 const active = currentTab === item.id;
                 return (
@@ -114,15 +122,45 @@ export const Sidebar: React.FC<SidebarProps> = ({
             </div>
           </div>
 
-          {/* Automation & Platform */}
+          {/* 2. Business Modules */}
           <div>
             {!isCollapsed && (
               <div className="text-[10px] font-mono uppercase text-slate-400 px-2.5 py-1 font-semibold tracking-wider">
-                Platform
+                Business Modules
               </div>
             )}
             <div className="space-y-0.5 mt-0.5">
-              {platformNav.map((item) => {
+              {businessModulesNav.map((item) => {
+                const Icon = item.icon;
+                const active = currentTab === item.id;
+                return (
+                  <button
+                    key={item.id}
+                    onClick={() => onTabChange(item.id)}
+                    className={`w-full flex items-center gap-2.5 px-2.5 py-1.5 rounded-lg text-xs font-medium transition-all duration-150 ${
+                      active
+                        ? 'bg-slate-900 text-white shadow-xs font-semibold'
+                        : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100/80'
+                    }`}
+                    title={item.label}
+                  >
+                    <Icon className={`w-4 h-4 shrink-0 ${active ? 'text-white' : 'text-slate-400'}`} />
+                    {!isCollapsed && <span className="truncate">{item.label}</span>}
+                  </button>
+                );
+              })}
+            </div>
+          </div>
+
+          {/* 3. Integrations & Administration */}
+          <div>
+            {!isCollapsed && (
+              <div className="text-[10px] font-mono uppercase text-slate-400 px-2.5 py-1 font-semibold tracking-wider">
+                Platform & Connectors
+              </div>
+            )}
+            <div className="space-y-0.5 mt-0.5">
+              {systemNav.map((item) => {
                 const Icon = item.icon;
                 const active = currentTab === item.id;
                 return (
@@ -142,9 +180,11 @@ export const Sidebar: React.FC<SidebarProps> = ({
                     </div>
 
                     {!isCollapsed && item.badge && (
-                      <span className={`text-[9px] font-mono px-1.5 py-0.2 rounded-full font-semibold uppercase ${
-                        active ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'
-                      }`}>
+                      <span
+                        className={`text-[9px] font-mono px-1.5 py-0.2 rounded-full font-semibold uppercase ${
+                          active ? 'bg-slate-800 text-slate-200' : 'bg-slate-100 text-slate-600'
+                        }`}
+                      >
                         {item.badge}
                       </span>
                     )}

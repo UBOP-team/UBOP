@@ -10,6 +10,7 @@ from app.modules.erp.router import router as erp_router
 from app.modules.oms.router import router as oms_router
 from app.modules.bi.router import router as bi_router
 from app.modules.workflow.router import router as workflow_router
+from app.providers.router import router as providers_router
 
 
 @asynccontextmanager
@@ -53,3 +54,4 @@ app.include_router(erp_router, prefix=settings.API_V1_STR)
 app.include_router(oms_router, prefix=settings.API_V1_STR)
 app.include_router(bi_router, prefix=settings.API_V1_STR)
 app.include_router(workflow_router, prefix=settings.API_V1_STR)
+app.include_router(providers_router, prefix=settings.API_V1_STR)
