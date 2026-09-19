@@ -1,6 +1,6 @@
 import time
 from typing import Any, Dict
-from fastapi import APIRouter, HTTPException, Query
+from fastapi import APIRouter, Query
 from app.core.config import settings
 from .live_clients import stripe_client, shopify_client, slack_client, telegram_client
 
@@ -12,7 +12,9 @@ async def get_providers_health() -> Dict[str, Any]:
     """Inspect environment configuration status for all external technologies."""
     return {
         "stripe": {
-            "configured": bool(settings.STRIPE_SECRET_KEY and settings.STRIPE_SECRET_KEY != "sk_test_..."),
+            "configured": bool(
+                settings.STRIPE_SECRET_KEY and not settings.STRIPE_SECRET_KEY.endswith("...")
+            ),
             "key_prefix": settings.STRIPE_SECRET_KEY[:7] if settings.STRIPE_SECRET_KEY else "none",
         },
         "shopify": {
