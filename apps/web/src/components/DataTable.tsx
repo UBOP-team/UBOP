@@ -236,34 +236,38 @@ export function DataTable<T>({
         </div>
       </div>
 
-      {/* Bulk Action Bar (when rows selected) */}
+      {/* Floating Batch Action Bar (Shopify Polaris style) */}
       {selectedIds.size > 0 && (
-        <div className="p-2.5 bg-teal-50 border border-teal-200 rounded-xl flex items-center justify-between gap-3 text-xs animate-smooth-scale text-teal-900">
+        <div className="fixed bottom-6 left-1/2 -translate-x-1/2 z-40 bg-slate-900/95 backdrop-blur-md text-white border border-slate-700/80 px-4 py-2.5 rounded-2xl shadow-enterprise-popover flex items-center gap-4 animate-smooth-scale text-xs">
           <div className="flex items-center gap-2 font-medium">
-            <CheckSquare className="w-4 h-4 text-teal-600" />
-            <span>
-              {selectedIds.size} {selectedIds.size === 1 ? 'row' : 'rows'} selected
+            <span className="w-5 h-5 rounded-full bg-teal-500/20 text-teal-400 font-mono text-[11px] font-bold flex items-center justify-center">
+              {selectedIds.size}
+            </span>
+            <span className="font-semibold text-slate-200">
+              {selectedIds.size === 1 ? 'record selected' : 'records selected'}
             </span>
           </div>
+
+          <div className="h-4 w-px bg-slate-700" />
 
           <div className="flex items-center gap-2">
             {bulkActions && bulkActions(selectedRowsList)}
             <button
               onClick={() => setSelectedIds(new Set())}
-              className="px-2.5 py-1 text-slate-500 hover:text-slate-800 text-[11px] font-medium"
+              className="px-2.5 py-1 text-slate-400 hover:text-white text-xs transition-colors"
             >
-              Clear Selection
+              Deselect All
             </button>
           </div>
         </div>
       )}
 
       {/* Table Container */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-xs">
-        <div className="overflow-x-auto">
+      <div className="bg-white border border-slate-200/90 rounded-2xl overflow-hidden shadow-enterprise">
+        <div className="overflow-x-auto max-h-[640px]">
           <table className="w-full text-left border-collapse">
-            <thead>
-              <tr className="bg-slate-50/80 border-b border-slate-200 text-[11px] font-semibold uppercase text-slate-500">
+            <thead className="sticky top-0 z-10 bg-white/95 backdrop-blur-md border-b border-slate-200 text-[11px] font-semibold uppercase text-slate-500 shadow-[0_1px_2px_rgba(0,0,0,0.03)]">
+              <tr>
                 {/* Checkbox Column */}
                 <th className="p-3 w-10 text-center">
                   <button

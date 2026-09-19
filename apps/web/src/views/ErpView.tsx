@@ -1,18 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Plus,
-  AlertCircle,
-  CheckCircle2,
-  Search,
-  Boxes,
-  Building2,
-  DollarSign,
-  TrendingUp,
-  ArrowDownLeft,
-  ArrowUpRight,
-  Receipt,
-  FileSpreadsheet,
-} from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { Product, InventoryItem } from '../types';
 import { Modal } from '../components/Modal';
 import { useToast } from '../components/Toast';
@@ -138,7 +125,7 @@ export const ErpView: React.FC<ErpViewProps> = ({
       });
       toast.success('Product Added', `${productForm.name} added to catalog.`);
     } catch {
-      toast.error('Error', 'Could not add product.');
+      toast.error('Error', 'Failed to register product SKU.');
     } finally {
       setLoading(false);
     }
@@ -151,20 +138,19 @@ export const ErpView: React.FC<ErpViewProps> = ({
     try {
       await onAdjustStock({
         product_id: selectedProductId,
-        quantity_delta: stockDelta,
-        warehouse: 'MAIN',
+        delta: stockDelta,
       });
       setIsStockModalOpen(false);
       toast.success('Stock Adjusted', `Inventory count updated successfully.`);
     } catch {
-      toast.error('Error', 'Stock adjustment failed.');
+      toast.error('Error', 'Failed to adjust physical stock.');
     } finally {
       setLoading(false);
     }
   };
 
   return (
-    <div className="space-y-6 animate-smooth-fade">
+    <div className="space-y-6">
       {/* Top Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
         <div>
@@ -192,25 +178,23 @@ export const ErpView: React.FC<ErpViewProps> = ({
       <div className="flex items-center gap-2 border-b border-slate-200 pb-2.5">
         <button
           onClick={() => setActiveErpTab('INVENTORY')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-press ${
+          className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-press ${
             activeErpTab === 'INVENTORY'
               ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
-          <Boxes className="w-4 h-4" />
           Warehouse & Inventory Management
         </button>
 
         <button
           onClick={() => setActiveErpTab('FINANCE')}
-          className={`flex items-center gap-2 px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-press ${
+          className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-press ${
             activeErpTab === 'FINANCE'
               ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
-          <Receipt className="w-4 h-4" />
           Financial Ledger & Controlling
         </button>
       </div>
@@ -225,7 +209,6 @@ export const ErpView: React.FC<ErpViewProps> = ({
               value={totalProductsCount}
               change={8.5}
               period="active SKUs"
-              icon={Boxes}
               colorScheme="teal"
               sparklineData={[18, 22, 25, 28, totalProductsCount]}
             />
@@ -234,7 +217,6 @@ export const ErpView: React.FC<ErpViewProps> = ({
               value={lowStockCount}
               change={-12.0}
               period="reorder threshold < 10"
-              icon={AlertCircle}
               colorScheme="rose"
             />
             <MetricCard
@@ -242,7 +224,6 @@ export const ErpView: React.FC<ErpViewProps> = ({
               value={`${incomingShipments} Units`}
               change={24.0}
               period="supplier PO in-transit"
-              icon={ArrowDownLeft}
               colorScheme="blue"
             />
             <MetricCard
@@ -250,7 +231,6 @@ export const ErpView: React.FC<ErpViewProps> = ({
               value={`${outgoingOrders} Orders`}
               change={14.2}
               period="picking & dispatch"
-              icon={ArrowUpRight}
               colorScheme="amber"
             />
           </div>
@@ -317,9 +297,8 @@ export const ErpView: React.FC<ErpViewProps> = ({
                           </td>
 
                           <td className="px-5 py-3.5">
-                            <span className="inline-flex items-center gap-1.5 font-mono text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
-                              <Building2 className="w-3.5 h-3.5 text-slate-400" />
-                              WH-{warehouse} (Bay A3)
+                            <span className="inline-flex items-center font-mono text-[11px] text-slate-600 bg-slate-50 px-2.5 py-1 rounded-lg border border-slate-200">
+                              WH-{warehouse} · Bay A3
                             </span>
                           </td>
 
@@ -329,21 +308,13 @@ export const ErpView: React.FC<ErpViewProps> = ({
 
                           <td className="px-5 py-3.5">
                             <span
-                              className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold ${
+                              className={`inline-flex items-center px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold ${
                                 isLow
                                   ? 'bg-rose-50 text-rose-700 border border-rose-200'
                                   : 'bg-emerald-50 text-emerald-700 border border-emerald-200'
                               }`}
                             >
-                              {isLow ? (
-                                <>
-                                  <AlertCircle className="w-3 h-3" /> LOW STOCK
-                                </>
-                              ) : (
-                                <>
-                                  <CheckCircle2 className="w-3 h-3" /> AVAILABLE
-                                </>
-                              )}
+                              {isLow ? 'LOW STOCK' : 'AVAILABLE'}
                             </span>
                           </td>
 
@@ -385,7 +356,6 @@ export const ErpView: React.FC<ErpViewProps> = ({
               value={`$${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               change={16.4}
               period="gross billing"
-              icon={DollarSign}
               colorScheme="emerald"
             />
             <MetricCard
@@ -393,7 +363,6 @@ export const ErpView: React.FC<ErpViewProps> = ({
               value={`$${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               change={4.2}
               period="material & procurement"
-              icon={Receipt}
               colorScheme="rose"
             />
             <MetricCard
@@ -402,7 +371,6 @@ export const ErpView: React.FC<ErpViewProps> = ({
               change={22.5}
               target="60% margin"
               period={`${profitMargin}% margin`}
-              icon={TrendingUp}
               colorScheme="teal"
             />
             <MetricCard
@@ -410,7 +378,6 @@ export const ErpView: React.FC<ErpViewProps> = ({
               value={ledgerTransactions.length}
               change={8.0}
               period="ledger journal lines"
-              icon={FileSpreadsheet}
               colorScheme="indigo"
             />
           </div>

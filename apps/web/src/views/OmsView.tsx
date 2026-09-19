@@ -1,12 +1,5 @@
 import React, { useState } from 'react';
-import {
-  Plus,
-  Clock,
-  Search,
-  ShoppingBag,
-  DollarSign,
-  TrendingUp,
-} from 'lucide-react';
+import { Plus, Search } from 'lucide-react';
 import { Order, Customer, Product } from '../types';
 import { Modal } from '../components/Modal';
 import { Drawer } from '../components/Drawer';
@@ -159,37 +152,41 @@ export const OmsView: React.FC<OmsViewProps> = ({
     return [
       {
         id: 'step_1',
-        title: 'Order Created',
-        timestamp: 'Sep 19, 10:15',
+        title: 'Order Ingested & Authorized',
+        description: 'Authorized payment and logged transaction.',
+        timestamp: 'Sep 19, 10:14',
         status: 'COMPLETED',
-        iconType: 'PACKAGE',
+        badge: 'Authorized',
       },
       {
         id: 'step_2',
-        title: 'Payment Captured',
-        timestamp: 'Sep 19, 10:16',
-        status: currentIdx >= 1 ? 'COMPLETED' : order.status === 'CANCELLED' ? 'FAILED' : 'IN_PROGRESS',
-        iconType: 'PAYMENT',
+        title: 'Warehouse Picking & Pack',
+        description: 'Allocated inventory from Primary Distribution Center.',
+        timestamp: 'Sep 19, 11:30',
+        status: currentIdx >= 1 ? 'COMPLETED' : 'IN_PROGRESS',
+        badge: 'Picking ATP',
       },
       {
         id: 'step_3',
-        title: 'Carrier In-Transit',
-        timestamp: currentIdx >= 2 ? 'Sep 19, 14:00' : 'Pending dispatch',
-        status: currentIdx >= 2 ? 'COMPLETED' : currentIdx === 1 ? 'IN_PROGRESS' : 'PENDING',
-        iconType: 'TRUCK',
+        title: 'Carrier Handshake & Dispatch',
+        description: 'Handed off to logistics provider with tracking code.',
+        timestamp: currentIdx >= 2 ? 'Sep 19, 14:00' : 'Pending Handoff',
+        status: currentIdx >= 2 ? 'COMPLETED' : 'PENDING',
+        badge: 'In-Transit',
       },
       {
         id: 'step_4',
-        title: 'Delivered',
+        title: 'Delivered to Customer',
+        description: 'Final delivery confirmation received via webhook.',
         timestamp: currentIdx >= 3 ? 'Sep 19, 16:45' : 'Estimated tomorrow',
         status: currentIdx >= 3 ? 'COMPLETED' : 'PENDING',
-        iconType: 'CHECK',
+        badge: 'Proof of Delivery',
       },
     ];
   };
 
-  const getProviderBadge = (prov: string) => {
-    switch (prov) {
+  const getProviderBadge = (provider: string) => {
+    switch (provider) {
       case 'SHOPIFY':
         return (
           <span className="inline-flex items-center px-2.5 py-0.5 rounded-full bg-emerald-50 text-emerald-700 border border-emerald-200 font-mono text-[10px] font-semibold">
@@ -267,7 +264,6 @@ export const OmsView: React.FC<OmsViewProps> = ({
           value={ordersTodayCount}
           change={18.4}
           period="vs yesterday"
-          icon={ShoppingBag}
           colorScheme="teal"
           sparklineData={[14, 18, 12, 19, 24, ordersTodayCount]}
         />
@@ -276,7 +272,6 @@ export const OmsView: React.FC<OmsViewProps> = ({
           value={`$${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
           change={22.8}
           period="vs prior 30 days"
-          icon={DollarSign}
           colorScheme="emerald"
           sparklineData={[12000, 15000, 18000, 24000, totalRevenue]}
         />
@@ -285,7 +280,6 @@ export const OmsView: React.FC<OmsViewProps> = ({
           value={pendingCount}
           change={-5.0}
           period="fulfillment queue"
-          icon={Clock}
           colorScheme="amber"
         />
         <MetricCard
@@ -294,7 +288,6 @@ export const OmsView: React.FC<OmsViewProps> = ({
           change={3.2}
           target="98.5%"
           period="on-time dispatch"
-          icon={TrendingUp}
           colorScheme="blue"
         />
       </div>

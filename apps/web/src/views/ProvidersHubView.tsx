@@ -1,14 +1,9 @@
 import React, { useState } from 'react';
 import {
-  CreditCard,
-  MessageSquare,
-  Truck,
-  Users,
   Code2,
   CheckCircle2,
   Plus,
   Copy,
-  Zap,
   Check,
   RefreshCw,
   CheckCircle,
@@ -97,12 +92,12 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
   ]);
 
   const categories = [
-    { id: 'ALL', label: 'All Providers', icon: Zap },
-    { id: 'PAYMENTS', label: 'Payment Gateways', icon: CreditCard },
-    { id: 'COMMUNICATIONS', label: 'Comms & Alerts', icon: MessageSquare },
-    { id: 'LOGISTICS', label: 'Shipping & Logistics', icon: Truck },
-    { id: 'CRM', label: 'CRM & Marketing', icon: Users },
-    { id: 'CUSTOM', label: 'Custom Adapters', icon: Code2 },
+    { id: 'ALL', label: 'All Providers', count: providers.length },
+    { id: 'PAYMENTS', label: 'Payment Gateways', count: providers.filter((p) => p.category === 'PAYMENTS').length },
+    { id: 'COMMUNICATIONS', label: 'Comms & Alerts', count: providers.filter((p) => p.category === 'COMMUNICATIONS').length },
+    { id: 'LOGISTICS', label: 'Shipping & Logistics', count: providers.filter((p) => p.category === 'LOGISTICS').length },
+    { id: 'CRM', label: 'CRM & Marketing', count: providers.filter((p) => p.category === 'CRM').length },
+    { id: 'CUSTOM', label: 'Custom Adapters', count: providers.filter((p) => p.category === 'CUSTOM').length },
   ];
 
   const filteredProviders = providers.filter((p) => {
@@ -340,20 +335,27 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
         {/* Category Pills */}
         <div className="flex items-center gap-1.5 overflow-x-auto pb-1">
           {categories.map((cat) => {
-            const Icon = cat.icon;
             const active = activeCategory === cat.id;
             return (
               <button
                 key={cat.id}
                 onClick={() => setActiveCategory(cat.id)}
-                className={`flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap btn-press ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs font-medium transition-all whitespace-nowrap btn-press ${
                   active
                     ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs font-semibold'
                     : 'bg-white text-slate-600 hover:text-slate-800 hover:bg-slate-50 border border-slate-200'
                 }`}
               >
-                <Icon className={`w-3.5 h-3.5 ${active ? 'text-teal-700' : 'text-slate-400'}`} />
-                {cat.label}
+                <span>{cat.label}</span>
+                <span
+                  className={`text-[10px] font-mono px-1.5 py-0.5 rounded-full ${
+                    active
+                      ? 'bg-teal-200/60 text-teal-900 font-bold'
+                      : 'bg-slate-100 text-slate-500'
+                  }`}
+                >
+                  {cat.count}
+                </span>
               </button>
             );
           })}
@@ -493,12 +495,14 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                     Propagate provider events into OMS and ERP automatically.
                   </div>
                 </div>
-                <input
-                  type="checkbox"
-                  checked={selectedProvider.autoSync}
-                  onChange={() => handleToggleAutoSync(selectedProvider)}
-                  className="w-4 h-4 accent-teal-600 cursor-pointer"
-                />
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    checked={selectedProvider.autoSync}
+                    onChange={() => handleToggleAutoSync(selectedProvider)}
+                  />
+                  <span className="slider" />
+                </label>
               </div>
 
               <div className="flex items-center justify-between p-3 bg-slate-50 border border-slate-200 rounded-xl">
@@ -508,11 +512,13 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
                     Reject payloads that fail cryptographic HMAC signature check.
                   </div>
                 </div>
-                <input
-                  type="checkbox"
-                  defaultChecked
-                  className="w-4 h-4 accent-teal-600 cursor-pointer"
-                />
+                <label className="switch">
+                  <input
+                    type="checkbox"
+                    defaultChecked
+                  />
+                  <span className="slider" />
+                </label>
               </div>
             </div>
 
