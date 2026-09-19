@@ -314,20 +314,20 @@ export const PermissionMatrix: React.FC = () => {
   return (
     <div className="space-y-6 animate-smooth-fade">
       {/* Header Banner */}
-      <div className="bg-white border border-slate-200/90 rounded-2xl p-6 relative overflow-hidden shadow-xs">
+      <div className="bg-white border border-slate-200/90 rounded-2xl p-5 relative overflow-hidden shadow-xs">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
-            <div className="flex items-center gap-2 mb-1.5">
-              <span className="px-2.5 py-0.5 rounded-full bg-teal-50 text-teal-700 border border-teal-200 text-[10px] font-mono uppercase font-semibold flex items-center gap-1.5">
-                <Shield className="w-3.5 h-3.5" />
+            <div className="flex items-center gap-2 mb-1">
+              <span className="px-2 py-0.5 rounded-md bg-slate-100 text-slate-700 border border-slate-200 text-[10px] font-mono uppercase font-semibold flex items-center gap-1.5">
+                <Shield className="w-3.5 h-3.5 text-slate-500" />
                 Enterprise RBAC Governance
               </span>
               <span className="text-xs text-slate-400">• ISO-27001 / SOC-2 Compliant</span>
             </div>
-            <h2 className="text-xl font-bold text-slate-900 tracking-tight">
+            <h2 className="text-lg font-semibold text-slate-900 tracking-tight">
               Role & Capability Permission Matrix
             </h2>
-            <p className="text-xs text-slate-500 mt-1 max-w-2xl">
+            <p className="text-xs text-slate-500 mt-0.5 max-w-2xl">
               Grant granular access policies across CRM, OMS, ERP, BI, Workflow, and Integration
               Provider layers to ensure zero-trust separation of concerns.
             </p>
@@ -336,34 +336,34 @@ export const PermissionMatrix: React.FC = () => {
           <div className="flex items-center gap-2">
             <button
               onClick={() => setRoles(defaultRoles)}
-              className="flex items-center gap-1.5 px-3 py-2 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 font-medium transition-colors shadow-xs btn-press"
+              className="flex items-center gap-1.5 px-3 py-1.5 bg-white hover:bg-slate-50 border border-slate-200 rounded-lg text-xs text-slate-700 font-medium transition-colors shadow-xs btn-press"
             >
               <RotateCcw className="w-3.5 h-3.5" /> Reset Defaults
             </button>
             <button
               onClick={handleSavePolicy}
-              className="flex items-center gap-2 px-4 py-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold rounded-lg text-xs transition-all shadow-xs btn-press"
+              className="flex items-center gap-1.5 px-3.5 py-1.5 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-lg text-xs transition-colors shadow-xs btn-press"
             >
-              <Save className="w-4 h-4" /> Save Policy Matrix
+              <Save className="w-3.5 h-3.5" /> Save Policy Matrix
             </button>
           </div>
         </div>
 
         {/* Roles Quick Tabs */}
-        <div className="flex items-center gap-2 mt-6 pt-5 border-t border-slate-100 overflow-x-auto pb-1">
+        <div className="flex items-center gap-2 mt-5 pt-4 border-t border-slate-100 overflow-x-auto pb-1">
           {roles.map((r) => {
             const isActive = activeRole === r.roleId;
             return (
               <button
                 key={r.roleId}
                 onClick={() => setActiveRole(r.roleId)}
-                className={`flex items-center gap-2 px-3.5 py-2 rounded-lg text-xs font-semibold whitespace-nowrap transition-all border btn-press ${
+                className={`flex items-center gap-2 px-3 py-1.5 rounded-lg text-xs whitespace-nowrap transition-all border btn-press ${
                   isActive
-                    ? 'bg-teal-50 text-teal-800 border-teal-300 shadow-xs'
-                    : 'bg-white text-slate-600 hover:text-slate-900 border-slate-200'
+                    ? 'bg-slate-900 text-white border-slate-900 shadow-xs font-semibold'
+                    : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border-slate-200 font-medium'
                 }`}
               >
-                <Users className="w-3.5 h-3.5 text-teal-600" />
+                <Users className={`w-3.5 h-3.5 ${isActive ? 'text-slate-300' : 'text-slate-400'}`} />
                 <span>{r.roleName}</span>
                 <span className={`text-[10px] font-mono px-1.5 py-0.5 rounded border ${r.badgeColor}`}>
                   {r.roleId}
@@ -416,10 +416,10 @@ export const PermissionMatrix: React.FC = () => {
             <button
               key={mod}
               onClick={() => setSelectedModule(mod)}
-              className={`px-3 py-1.5 rounded-lg font-semibold transition-all btn-press ${
+              className={`px-3 py-1.5 rounded-lg text-xs transition-all btn-press ${
                 selectedModule === mod
-                  ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs'
-                  : 'bg-white text-slate-600 hover:text-slate-900 border border-slate-200'
+                  ? 'bg-slate-900 text-white shadow-xs font-semibold'
+                  : 'bg-white text-slate-600 hover:text-slate-900 hover:bg-slate-50 border border-slate-200 font-medium'
               }`}
             >
               {mod}
@@ -434,7 +434,7 @@ export const PermissionMatrix: React.FC = () => {
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search capability or permission..."
-            className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3.5 py-1.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-teal-500 text-xs shadow-xs"
+            className="w-full bg-white border border-slate-200 rounded-lg pl-9 pr-3.5 py-1.5 text-slate-800 placeholder-slate-400 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 text-xs shadow-xs"
           />
         </div>
       </div>

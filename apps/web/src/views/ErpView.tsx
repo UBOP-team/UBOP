@@ -166,36 +166,36 @@ export const ErpView: React.FC<ErpViewProps> = ({
           {activeErpTab === 'INVENTORY' && (
             <button
               onClick={() => setIsProductModalOpen(true)}
-              className="flex items-center gap-2 bg-teal-600 hover:bg-teal-700 text-white font-semibold px-4 py-2 rounded-lg text-xs transition-all shadow-xs shrink-0 btn-press"
+              className="flex items-center gap-2 bg-slate-900 hover:bg-slate-800 text-white font-medium px-3.5 py-1.5 rounded-lg text-xs transition-all shadow-xs shrink-0 btn-press"
             >
-              <Plus className="w-4 h-4" /> Add Catalog SKU
+              <Plus className="w-3.5 h-3.5" /> Add Catalog SKU
             </button>
           )}
         </div>
       </div>
 
       {/* Sub-Navigation Tabs: Inventory vs Finance */}
-      <div className="flex items-center gap-2 border-b border-slate-200 pb-2.5">
+      <div className="flex items-center gap-1 border-b border-slate-200/80 pb-2">
         <button
           onClick={() => setActiveErpTab('INVENTORY')}
-          className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-press ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
             activeErpTab === 'INVENTORY'
-              ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs'
+              ? 'bg-slate-900 text-white font-semibold shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
-          Warehouse & Inventory Management
+          Inventory & Stock ATP
         </button>
 
         <button
           onClick={() => setActiveErpTab('FINANCE')}
-          className={`px-4 py-2 rounded-lg text-xs font-semibold transition-all btn-press ${
+          className={`px-3 py-1.5 rounded-lg text-xs font-medium transition-all ${
             activeErpTab === 'FINANCE'
-              ? 'bg-teal-50 text-teal-800 border border-teal-200 shadow-xs'
+              ? 'bg-slate-900 text-white font-semibold shadow-xs'
               : 'text-slate-600 hover:text-slate-900 hover:bg-slate-100'
           }`}
         >
-          Financial Ledger & Controlling
+          General Ledger & Accounting
         </button>
       </div>
 
@@ -203,35 +203,33 @@ export const ErpView: React.FC<ErpViewProps> = ({
       {activeErpTab === 'INVENTORY' && (
         <div className="space-y-6 animate-smooth-fade">
           {/* Inventory Overview Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             <MetricCard
               title="Total Products"
               value={totalProductsCount}
               change={8.5}
               period="active SKUs"
-              colorScheme="teal"
               sparklineData={[18, 22, 25, 28, totalProductsCount]}
             />
             <MetricCard
               title="Low Stock"
               value={lowStockCount}
               change={-12.0}
-              period="reorder threshold < 10"
-              colorScheme="rose"
+              period="threshold < 10"
             />
             <MetricCard
-              title="Incoming"
+              title="Incoming Stock"
               value={`${incomingShipments} Units`}
               change={24.0}
-              period="supplier PO in-transit"
-              colorScheme="blue"
+              period="supplier in-transit"
+              sparklineData={[80, 110, 130, 145]}
             />
             <MetricCard
-              title="Outgoing"
+              title="Outgoing Orders"
               value={`${outgoingOrders} Orders`}
               change={14.2}
               period="picking & dispatch"
-              colorScheme="amber"
+              sparklineData={[20, 26, 32, 38]}
             />
           </div>
 
@@ -350,20 +348,20 @@ export const ErpView: React.FC<ErpViewProps> = ({
       {activeErpTab === 'FINANCE' && (
         <div className="space-y-6 animate-smooth-fade">
           {/* Finance Overview Cards */}
-          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-3.5">
             <MetricCard
               title="Revenue"
               value={`$${totalRevenue.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               change={16.4}
               period="gross billing"
-              colorScheme="emerald"
+              sparklineData={[32000, 38000, 42000, 48250]}
             />
             <MetricCard
               title="Cost of Goods (COGS)"
               value={`$${totalCost.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`}
               change={4.2}
-              period="material & procurement"
-              colorScheme="rose"
+              period="procurement"
+              sparklineData={[15000, 16500, 18000, 19300]}
             />
             <MetricCard
               title="Gross Profit"
@@ -371,14 +369,13 @@ export const ErpView: React.FC<ErpViewProps> = ({
               change={22.5}
               target="60% margin"
               period={`${profitMargin}% margin`}
-              colorScheme="teal"
+              sparklineData={[17000, 21500, 24000, 28950]}
             />
             <MetricCard
               title="Transactions"
               value={ledgerTransactions.length}
               change={8.0}
-              period="ledger journal lines"
-              colorScheme="indigo"
+              period="journal lines"
             />
           </div>
 

@@ -42,9 +42,9 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
     <div className="bg-white border border-slate-200/90 rounded-2xl p-4 space-y-3 text-xs shadow-xs">
       <div className="flex flex-wrap items-center justify-between gap-3">
         <div className="flex items-center gap-2">
-          <span className="font-bold text-slate-800">Filter Criteria</span>
+          <span className="font-semibold text-slate-800">Filter Criteria</span>
           {activeCount > 0 && (
-            <span className="px-2 py-0.5 rounded-full bg-teal-50 text-teal-700 font-mono text-[10px] font-bold border border-teal-200">
+            <span className="px-2 py-0.5 rounded-full bg-slate-100 text-slate-700 font-mono text-[10px] font-semibold border border-slate-200">
               {activeCount} active
             </span>
           )}
@@ -84,7 +84,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
               <select
                 value={currentVal}
                 onChange={(e) => onSelectValue(grp.id, e.target.value)}
-                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-800 focus:outline-none focus:border-teal-500 text-xs font-medium"
+                className="w-full bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 text-slate-800 focus:outline-none focus:border-slate-400 focus:ring-1 focus:ring-slate-400 text-xs font-medium"
               >
                 <option value="ALL">All {grp.name}s</option>
                 {grp.options.map((opt) => (
@@ -108,7 +108,7 @@ export const FilterPanel: React.FC<FilterPanelProps> = ({
             return (
               <span
                 key={grpId}
-                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-teal-50 text-teal-800 border border-teal-200 text-[11px] font-mono"
+                className="inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-md bg-slate-100 text-slate-800 border border-slate-200 text-[11px] font-mono"
               >
                 <span className="text-slate-500">{grp?.name || grpId}:</span> {val}
                 <button

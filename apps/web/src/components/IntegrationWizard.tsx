@@ -128,10 +128,10 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
         {/* Wizard Header */}
         <div className="px-6 py-4.5 border-b border-slate-200 bg-white flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-mono uppercase font-bold text-teal-700">
+            <span className="text-[10px] font-mono uppercase font-semibold text-slate-500">
               Provider Connection Wizard • Step {currentStep} of 5
             </span>
-            <h3 className="text-base font-bold text-slate-900 mt-0.5">
+            <h3 className="text-base font-semibold text-slate-900 mt-0.5">
               {stepTitles[currentStep - 1]}
             </h3>
           </div>
@@ -146,7 +146,7 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
         {/* Step Progress Bar */}
         <div className="w-full bg-slate-100 h-1">
           <div
-            className="bg-teal-600 h-full transition-all duration-300"
+            className="bg-slate-900 h-full transition-all duration-300"
             style={{ width: `${(currentStep / 5) * 100}%` }}
           />
         </div>
@@ -168,7 +168,7 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
                       onClick={() => setSelectedProviderId(prov.id)}
                       className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 card-hover ${
                         isSelected
-                          ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500/20'
+                          ? 'bg-white border-slate-900 ring-2 ring-slate-900/10 shadow-xs'
                           : 'bg-slate-50 border-slate-200 hover:border-slate-300'
                       }`}
                     >
@@ -178,7 +178,7 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
                         >
                           {prov.iconText}
                         </div>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-teal-600" />}
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-slate-900" />}
                       </div>
                       <div className="font-bold text-slate-900 text-sm">{prov.name}</div>
                       <div className="text-[10px] font-mono text-slate-400 uppercase mt-0.5">
@@ -214,22 +214,22 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
                   onClick={() => setEnvironment('PRODUCTION')}
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-200 btn-press ${
                     environment === 'PRODUCTION'
-                      ? 'bg-teal-50 border-teal-500 text-teal-900'
+                      ? 'bg-white border-slate-900 ring-2 ring-slate-900/10 text-slate-900 shadow-xs'
                       : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                   }`}
                 >
-                  <div className="font-bold text-slate-900">Production / Live</div>
+                  <div className="font-semibold text-slate-900">Production / Live</div>
                   <div className="text-[11px] text-slate-500 mt-0.5">Connect to real customer data</div>
                 </div>
                 <div
                   onClick={() => setEnvironment('SANDBOX')}
                   className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-200 btn-press ${
                     environment === 'SANDBOX'
-                      ? 'bg-teal-50 border-teal-500 text-teal-900'
+                      ? 'bg-white border-slate-900 ring-2 ring-slate-900/10 text-slate-900 shadow-xs'
                       : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                   }`}
                 >
-                  <div className="font-bold text-slate-900">Sandbox / Staging</div>
+                  <div className="font-semibold text-slate-900">Sandbox / Staging</div>
                   <div className="text-[11px] text-slate-500 mt-0.5">Mock testing environment</div>
                 </div>
               </div>
@@ -442,7 +442,7 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
               <button
                 type="button"
                 onClick={() => setCurrentStep(currentStep + 1)}
-                className="flex items-center gap-1.5 px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs transition-all shadow-sm btn-press"
+                className="flex items-center gap-1.5 px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl text-xs transition-all shadow-xs btn-press"
               >
                 Continue <ArrowRight className="w-4 h-4" />
               </button>
@@ -450,7 +450,7 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
               <button
                 type="button"
                 onClick={handleFinish}
-                className="flex items-center gap-1.5 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all shadow-sm btn-press"
+                className="flex items-center gap-1.5 px-6 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl text-xs transition-all shadow-xs btn-press"
               >
                 <Check className="w-4 h-4" /> Activate Provider
               </button>

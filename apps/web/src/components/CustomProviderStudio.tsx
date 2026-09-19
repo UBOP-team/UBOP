@@ -213,22 +213,22 @@ export const CustomProviderStudio: React.FC<CustomProviderStudioProps> = ({
               <div
                 key={s.number}
                 className={`p-3.5 border-r border-slate-200 last:border-r-0 flex items-center gap-2.5 transition-colors ${
-                  isCurrent ? 'bg-white border-b-2 border-b-teal-600' : ''
+                  isCurrent ? 'bg-white border-b-2 border-b-slate-900' : ''
                 }`}
               >
                 <div
                   className={`w-6 h-6 rounded-full flex items-center justify-center font-mono text-xs font-bold shrink-0 transition-colors ${
                     isDone
-                      ? 'bg-emerald-600 text-white'
+                      ? 'bg-slate-900 text-white'
                       : isCurrent
-                      ? 'bg-teal-600 text-white shadow-xs'
+                      ? 'bg-slate-900 text-white shadow-xs'
                       : 'bg-slate-200 text-slate-500'
                   }`}
                 >
                   {isDone ? <Check className="w-3.5 h-3.5" /> : s.number}
                 </div>
                 <div className="min-w-0 hidden sm:block">
-                  <div className={`font-semibold truncate ${isCurrent ? 'text-teal-900 font-bold' : 'text-slate-700'}`}>
+                  <div className={`font-semibold truncate ${isCurrent ? 'text-slate-900 font-bold' : 'text-slate-600'}`}>
                     {s.title}
                   </div>
                   <div className="text-[10px] text-slate-400 truncate">{s.desc}</div>
@@ -661,7 +661,7 @@ export const CustomProviderStudio: React.FC<CustomProviderStudioProps> = ({
               <button
                 type="button"
                 onClick={() => setCurrentStep(currentStep + 1)}
-                className="flex items-center gap-1.5 px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs transition-all shadow-sm btn-press"
+                className="flex items-center gap-1.5 px-5 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl text-xs transition-all shadow-xs btn-press"
               >
                 Next Step <ArrowRight className="w-4 h-4" />
               </button>
@@ -670,7 +670,7 @@ export const CustomProviderStudio: React.FC<CustomProviderStudioProps> = ({
                 type="button"
                 onClick={handleActivate}
                 disabled={!testResult || !testResult.success}
-                className="flex items-center gap-1.5 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all shadow-sm disabled:opacity-50 btn-press"
+                className="flex items-center gap-1.5 px-6 py-2 bg-slate-900 hover:bg-slate-800 text-white font-medium rounded-xl text-xs transition-all shadow-xs disabled:opacity-50 btn-press"
               >
                 <Check className="w-4 h-4" /> Activate Custom Provider
               </button>
