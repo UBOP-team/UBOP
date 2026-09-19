@@ -9,12 +9,19 @@ import {
   ChevronRight,
   ShoppingCart,
   Calendar,
-  Send,
+  Users,
+  UserCheck,
+  TrendingUp,
+  DollarSign,
+  FileText,
+  ExternalLink,
 } from 'lucide-react';
 import { Customer } from '../types';
 import { Modal } from '../components/Modal';
 import { Drawer } from '../components/Drawer';
 import { useToast } from '../components/Toast';
+import { MetricCard } from '../components/MetricCard';
+import { Timeline, TimelineItem } from '../components/Timeline';
 
 interface CrmViewProps {
   customers: Customer[];
@@ -30,6 +37,9 @@ export const CrmView: React.FC<CrmViewProps> = ({
   const toast = useToast();
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedCustomer, setSelectedCustomer] = useState<Customer | null>(null);
+  const [customerProfileTab, setCustomerProfileTab] = useState<
+    'OVERVIEW' | 'ACTIVITIES' | 'DEALS' | 'ORDERS' | 'DOCUMENTS'
+  >('OVERVIEW');
   const [statusFilter, setStatusFilter] = useState<string>('ALL');
   const [searchQuery, setSearchQuery] = useState('');
 
@@ -38,7 +48,7 @@ export const CrmView: React.FC<CrmViewProps> = ({
     email: '',
     phone: '',
     company: '',
-    status: 'ACTIVE' as const,
+    status: 'ACTIVE' as 'LEAD' | 'ACTIVE' | 'INACTIVE',
   });
   const [loading, setLoading] = useState(false);
 
@@ -77,6 +87,78 @@ export const CrmView: React.FC<CrmViewProps> = ({
       .toUpperCase();
   };
 
+  // Mock Deals for Customer 360
+  const mockDeals = [
+    {
+      id: 'deal_1',
+      title: 'Enterprise ERP Suite Expansion',
+      value: '$48,500',
+      stage: 'Proposal / Negotiation',
+      probability: '75%',
+      expectedClose: 'Oct 15, 2026',
+    },
+    {
+      id: 'deal_2',
+      title: 'Custom API Adapter Retainer',
+      value: '$12,000',
+      stage: 'Closed Won',
+      probability: '100%',
+      expectedClose: 'Sep 01, 2026',
+    },
+  ];
+
+  // Mock Documents for Customer 360
+  const mockDocuments = [
+    {
+      name: 'Master_Services_Agreement_2026.pdf',
+      type: 'PDF Contract',
+      size: '1.8 MB',
+      updatedAt: 'Aug 24, 2026',
+    },
+    {
+      name: 'Enterprise_Security_Addendum.pdf',
+      type: 'Compliance NDA',
+      size: '640 KB',
+      updatedAt: 'Sep 02, 2026',
+    },
+  ];
+
+  // Salesforce Activity Timeline
+  const activityTimeline: TimelineItem[] = [
+    {
+      id: 'act_1',
+      title: 'Updated deal (Enterprise Expansion)',
+      description: 'Advanced deal stage to Proposal/Negotiation after VP technical review.',
+      timestamp: 'Today at 15:30',
+      actor: 'Sarah Jenkins (Account Lead)',
+      status: 'COMPLETED',
+      iconType: 'PAYMENT',
+      badge: 'Sales Pipeline',
+    },
+    {
+      id: 'act_2',
+      title: 'Called customer (Discovery Session)',
+      description: 'Discussed high-volume Shopify OMS order sync rate and multi-warehouse ATP requirements.',
+      timestamp: 'Yesterday at 11:15',
+      actor: 'David Chen (Solutions Architect)',
+      status: 'COMPLETED',
+      iconType: 'PHONE',
+      badge: 'Outbound Call',
+    },
+    {
+      id: 'act_3',
+      title: 'Created lead',
+      description: 'Lead ingested via Inbound Marketing Webhook from HubSpot connector.',
+      timestamp: 'Sep 14, 2026',
+      actor: 'System EventBus',
+      status: 'COMPLETED',
+      iconType: 'CHECK',
+      badge: 'Inbound Hook',
+    },
+  ];
+
+  const leadsCount = customers.filter((c) => c.status === 'LEAD').length;
+
   return (
     <div className="space-y-6">
       {/* Top Header */}
@@ -84,26 +166,66 @@ export const CrmView: React.FC<CrmViewProps> = ({
         <div>
           <h2 className="text-xl font-bold text-slate-100 tracking-tight">Customer Relationship (CRM)</h2>
           <p className="text-xs text-slate-400 mt-1">
-            Enterprise account directory, buyer lifecycle tracking, and Customer 360 engagement.
+            Salesforce Lightning design layout: Customer 360, pipeline governance, and omnichannel activity timelines.
           </p>
         </div>
         <button
           onClick={() => setIsModalOpen(true)}
-          className="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-semibold px-4 py-2 rounded-xl text-xs transition-all shadow-lg shadow-teal-500/10 shrink-0"
+          className="flex items-center gap-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold px-4 py-2 rounded-xl text-xs transition-all shadow-lg shadow-teal-500/10 shrink-0"
         >
           <Plus className="w-4 h-4" /> Add Customer
         </button>
       </div>
 
+      {/* CRM Dashboard Cards (Salesforce Reference: Total Customers, New Leads, Conversion Rate, Revenue Pipeline) */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <MetricCard
+          title="Total Customers"
+          value={customers.length}
+          change={14.2}
+          period="vs prior month"
+          icon={Users}
+          colorScheme="teal"
+          sparklineData={[12, 14, 18, 22, 25, 29, customers.length]}
+        />
+        <MetricCard
+          title="New Leads"
+          value={leadsCount || 12}
+          change={28.5}
+          period="vs prior 30 days"
+          icon={UserCheck}
+          colorScheme="blue"
+          sparklineData={[5, 8, 7, 10, 14, 18, 22]}
+        />
+        <MetricCard
+          title="Conversion Rate"
+          value="68.4%"
+          change={4.1}
+          target="70.0%"
+          period="lead to customer"
+          icon={TrendingUp}
+          colorScheme="emerald"
+        />
+        <MetricCard
+          title="Revenue Pipeline"
+          value="$482,500"
+          change={19.8}
+          period="active opportunities"
+          icon={DollarSign}
+          colorScheme="indigo"
+          sparklineData={[140, 180, 220, 310, 390, 482]}
+        />
+      </div>
+
       {/* Filter and Search Bar */}
-      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-950/40 p-3 rounded-2xl border border-slate-800/80">
+      <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 bg-slate-950/80 p-3 rounded-2xl border border-slate-800">
         {/* Status Pills */}
         <div className="flex items-center gap-1">
           {filterTabs.map((tab) => (
             <button
               key={tab}
               onClick={() => setStatusFilter(tab)}
-              className={`px-3 py-1 rounded-xl text-xs font-semibold transition-all ${
+              className={`px-3 py-1.5 rounded-xl text-xs font-semibold transition-all ${
                 statusFilter === tab
                   ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-sm'
                   : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900 border border-transparent'
@@ -122,39 +244,42 @@ export const CrmView: React.FC<CrmViewProps> = ({
             value={searchQuery}
             onChange={(e) => setSearchQuery(e.target.value)}
             placeholder="Search by name, email, company..."
-            className="w-full bg-slate-900/80 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
+            className="w-full bg-slate-900 border border-slate-800 rounded-xl pl-9 pr-3 py-1.5 text-xs text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 transition-colors"
           />
         </div>
       </div>
 
       {/* Customers Table */}
-      <div className="bg-slate-950/60 border border-slate-800/80 rounded-2xl overflow-hidden backdrop-blur-sm">
+      <div className="bg-slate-950/70 border border-slate-800 rounded-2xl overflow-hidden shadow-xl">
         <div className="overflow-x-auto">
-          <table className="w-full text-left text-xs">
-            <thead className="bg-slate-900/80 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
+          <table className="w-full text-left text-xs border-collapse">
+            <thead className="bg-slate-900 text-slate-400 uppercase text-[11px] font-semibold border-b border-slate-800">
               <tr>
-                <th className="px-6 py-3.5">Customer / Account</th>
-                <th className="px-6 py-3.5">Contact Channels</th>
-                <th className="px-6 py-3.5">Lifecycle Status</th>
-                <th className="px-6 py-3.5">Registered</th>
-                <th className="px-6 py-3.5 text-right">Action</th>
+                <th className="px-5 py-3.5">Customer / Account</th>
+                <th className="px-5 py-3.5">Contact Channels</th>
+                <th className="px-5 py-3.5">Lifecycle Status</th>
+                <th className="px-5 py-3.5">Registered</th>
+                <th className="px-5 py-3.5 text-right">Action</th>
               </tr>
             </thead>
             <tbody className="divide-y divide-slate-800/60 text-slate-300">
               {filteredCustomers.length === 0 ? (
                 <tr>
                   <td colSpan={5} className="px-6 py-12 text-center text-slate-500">
-                    No customers match the current filter.
+                    No customers match the current filter criteria.
                   </td>
                 </tr>
               ) : (
                 filteredCustomers.map((c) => (
                   <tr
                     key={c.id}
-                    onClick={() => setSelectedCustomer(c)}
+                    onClick={() => {
+                      setSelectedCustomer(c);
+                      setCustomerProfileTab('OVERVIEW');
+                    }}
                     className="hover:bg-slate-900/50 cursor-pointer transition-colors group"
                   >
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-3">
                         <div className="w-9 h-9 rounded-xl bg-gradient-to-tr from-slate-800 to-slate-700 border border-slate-700 flex items-center justify-center font-bold text-teal-400 text-xs shadow-inner">
                           {getInitials(c.name)}
@@ -170,7 +295,7 @@ export const CrmView: React.FC<CrmViewProps> = ({
                         </div>
                       </div>
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-3.5">
                       <div className="flex items-center gap-1.5 text-slate-300">
                         <Mail className="w-3 h-3 text-slate-500" /> {c.email}
                       </div>
@@ -180,7 +305,7 @@ export const CrmView: React.FC<CrmViewProps> = ({
                         </div>
                       )}
                     </td>
-                    <td className="px-6 py-4">
+                    <td className="px-5 py-3.5">
                       <span
                         className={`inline-flex items-center gap-1.5 px-2.5 py-0.5 rounded-full font-mono text-[10px] font-semibold uppercase ${
                           c.status === 'ACTIVE'
@@ -194,12 +319,12 @@ export const CrmView: React.FC<CrmViewProps> = ({
                         {c.status}
                       </span>
                     </td>
-                    <td className="px-6 py-4 text-slate-500 font-mono text-[11px]">
+                    <td className="px-5 py-3.5 text-slate-500 font-mono text-[11px]">
                       {new Date(c.created_at).toLocaleDateString()}
                     </td>
-                    <td className="px-6 py-4 text-right">
+                    <td className="px-5 py-3.5 text-right">
                       <span className="text-slate-500 group-hover:text-teal-400 transition-colors inline-flex items-center gap-1 text-[11px]">
-                        Details <ChevronRight className="w-3.5 h-3.5" />
+                        Profile 360 <ChevronRight className="w-3.5 h-3.5" />
                       </span>
                     </td>
                   </tr>
@@ -210,183 +335,291 @@ export const CrmView: React.FC<CrmViewProps> = ({
         </div>
       </div>
 
-      {/* Customer 360 Slide-over Drawer */}
+      {/* Customer Profile 360 Slide-over Drawer (Salesforce Lightning 5-Tab Layout) */}
       <Drawer
         isOpen={!!selectedCustomer}
         onClose={() => setSelectedCustomer(null)}
         title={selectedCustomer ? selectedCustomer.name : 'Customer Profile'}
-        subtitle="Customer 360 overview, orders, and interaction timeline."
+        subtitle="Salesforce Lightning Customer 360 Record"
         width="lg"
       >
         {selectedCustomer && (
-          <div className="space-y-6 text-xs">
-            {/* Account Card */}
-            <div className="p-5 bg-slate-950/80 border border-slate-800 rounded-2xl flex items-center justify-between">
+          <div className="space-y-5 text-xs">
+            {/* Header: Customer Information */}
+            <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-2xl flex items-center justify-between">
               <div className="flex items-center gap-3.5">
-                <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-400 font-bold text-sm flex items-center justify-center">
+                <div className="w-12 h-12 rounded-2xl bg-teal-500/10 border border-teal-500/30 text-teal-400 font-bold text-sm flex items-center justify-center shadow-md">
                   {getInitials(selectedCustomer.name)}
                 </div>
                 <div>
                   <h4 className="text-base font-bold text-slate-100">{selectedCustomer.name}</h4>
-                  <div className="text-slate-400 text-xs mt-0.5">
+                  <div className="text-slate-400 text-xs mt-0.5 flex items-center gap-1.5">
+                    <Building className="w-3.5 h-3.5 text-slate-500" />
                     {selectedCustomer.company || 'Enterprise Account'}
                   </div>
                 </div>
               </div>
-              <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono text-xs font-semibold">
-                {selectedCustomer.status}
-              </span>
-            </div>
 
-            {/* Metrics */}
-            <div className="grid grid-cols-3 gap-3">
-              <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 text-center">
-                <div className="text-[10px] text-slate-500 uppercase font-medium">Lifetime Value</div>
-                <div className="text-base font-bold text-teal-400 mt-1">$10,850.00</div>
-              </div>
-              <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 text-center">
-                <div className="text-[10px] text-slate-500 uppercase font-medium">Orders Placed</div>
-                <div className="text-base font-bold text-slate-100 mt-1">2 Orders</div>
-              </div>
-              <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 text-center">
-                <div className="text-[10px] text-slate-500 uppercase font-medium">Payment Health</div>
-                <div className="text-base font-bold text-emerald-400 mt-1">Prompt</div>
+              <div className="flex flex-col items-end gap-1">
+                <span className="px-3 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/30 font-mono text-xs font-semibold">
+                  {selectedCustomer.status}
+                </span>
+                <span className="text-[10px] text-slate-500 font-mono">
+                  ID: #{selectedCustomer.id}
+                </span>
               </div>
             </div>
 
-            {/* Contact Details */}
-            <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2.5">
-              <span className="font-semibold text-slate-200 block mb-1">Communication Records</span>
-              <div className="flex items-center justify-between text-slate-300">
-                <span className="text-slate-500 flex items-center gap-1.5">
-                  <Mail className="w-3.5 h-3.5" /> Email:
-                </span>
-                <span className="font-mono">{selectedCustomer.email}</span>
-              </div>
-              <div className="flex items-center justify-between text-slate-300">
-                <span className="text-slate-500 flex items-center gap-1.5">
-                  <Phone className="w-3.5 h-3.5" /> Phone:
-                </span>
-                <span>{selectedCustomer.phone || 'None provided'}</span>
-              </div>
-              <div className="flex items-center justify-between text-slate-300">
-                <span className="text-slate-500 flex items-center gap-1.5">
-                  <Calendar className="w-3.5 h-3.5" /> Account Since:
-                </span>
-                <span>{new Date(selectedCustomer.created_at).toLocaleDateString()}</span>
-              </div>
+            {/* 5 Salesforce Tabs: Overview | Activities | Deals | Orders | Documents */}
+            <div className="flex items-center gap-1 border-b border-slate-800 pb-2 overflow-x-auto">
+              {(
+                [
+                  { id: 'OVERVIEW', label: 'Overview' },
+                  { id: 'ACTIVITIES', label: 'Activities' },
+                  { id: 'DEALS', label: 'Deals' },
+                  { id: 'ORDERS', label: 'Orders' },
+                  { id: 'DOCUMENTS', label: 'Documents' },
+                ] as const
+              ).map((tab) => (
+                <button
+                  key={tab.id}
+                  onClick={() => setCustomerProfileTab(tab.id)}
+                  className={`px-3 py-1.5 rounded-xl font-semibold transition-all whitespace-nowrap text-xs ${
+                    customerProfileTab === tab.id
+                      ? 'bg-teal-500/20 text-teal-300 border border-teal-500/40 shadow-sm'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900'
+                  }`}
+                >
+                  {tab.label}
+                </button>
+              ))}
             </div>
 
-            {/* Engagement Timeline */}
-            <div>
-              <span className="font-semibold text-slate-200 block mb-3">Activity Stream</span>
-              <div className="space-y-3 pl-2 border-l-2 border-slate-800">
-                <div className="relative pl-4">
-                  <div className="w-2.5 h-2.5 rounded-full bg-teal-400 absolute -left-[18px] top-1 ring-4 ring-slate-900" />
-                  <div className="font-medium text-slate-200">Order Confirmed (ORD-2026-0919-02)</div>
-                  <div className="text-slate-400 text-[11px]">Total: $13,200.00 via Stripe Provider</div>
-                  <div className="text-slate-500 text-[10px] font-mono mt-0.5">Today at 18:30</div>
+            {/* TAB 1: OVERVIEW */}
+            {customerProfileTab === 'OVERVIEW' && (
+              <div className="space-y-4 animate-in fade-in duration-150">
+                <div className="grid grid-cols-3 gap-3">
+                  <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 text-center">
+                    <div className="text-[10px] text-slate-500 uppercase font-medium">Lifetime Value</div>
+                    <div className="text-base font-bold text-teal-400 mt-1">$28,450.00</div>
+                  </div>
+                  <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 text-center">
+                    <div className="text-[10px] text-slate-500 uppercase font-medium">Orders Count</div>
+                    <div className="text-base font-bold text-slate-100 mt-1">4 Orders</div>
+                  </div>
+                  <div className="bg-slate-950/60 border border-slate-800/80 rounded-xl p-3 text-center">
+                    <div className="text-[10px] text-slate-500 uppercase font-medium">Payment Health</div>
+                    <div className="text-base font-bold text-emerald-400 mt-1">Tier-1 Prompt</div>
+                  </div>
                 </div>
-                <div className="relative pl-4">
-                  <div className="w-2.5 h-2.5 rounded-full bg-blue-400 absolute -left-[18px] top-1 ring-4 ring-slate-900" />
-                  <div className="font-medium text-slate-200">Welcome Notification Sent</div>
-                  <div className="text-slate-400 text-[11px]">Dispatched via SendGrid Provider</div>
-                  <div className="text-slate-500 text-[10px] font-mono mt-0.5">Yesterday</div>
+
+                <div className="p-4 bg-slate-950/60 border border-slate-800 rounded-xl space-y-2.5">
+                  <span className="font-semibold text-slate-200 block mb-1">Account Specifications</span>
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Mail className="w-3.5 h-3.5" /> Email Address:
+                    </span>
+                    <span className="font-mono">{selectedCustomer.email}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Phone className="w-3.5 h-3.5" /> Phone Number:
+                    </span>
+                    <span>{selectedCustomer.phone || '+1 (555) 234-5678'}</span>
+                  </div>
+                  <div className="flex items-center justify-between text-slate-300">
+                    <span className="text-slate-500 flex items-center gap-1.5">
+                      <Calendar className="w-3.5 h-3.5" /> Customer Since:
+                    </span>
+                    <span>{new Date(selectedCustomer.created_at).toLocaleDateString()}</span>
+                  </div>
                 </div>
-                <div className="relative pl-4">
-                  <div className="w-2.5 h-2.5 rounded-full bg-emerald-400 absolute -left-[18px] top-1 ring-4 ring-slate-900" />
-                  <div className="font-medium text-slate-200">Account Created</div>
-                  <div className="text-slate-400 text-[11px]">Registered via CRM API Endpoint</div>
-                  <div className="text-slate-500 text-[10px] font-mono mt-0.5">
-                    {new Date(selectedCustomer.created_at).toLocaleDateString()}
+
+                {onSelectCustomerForOrder && (
+                  <button
+                    onClick={() => onSelectCustomerForOrder(selectedCustomer.id)}
+                    className="w-full py-2.5 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-slate-950 font-bold rounded-xl text-xs flex items-center justify-center gap-2 shadow-lg shadow-teal-500/10"
+                  >
+                    <ShoppingCart className="w-4 h-4" /> Create Omnichannel Order in OMS
+                  </button>
+                )}
+              </div>
+            )}
+
+            {/* TAB 2: ACTIVITIES (Salesforce Timeline: Created lead, Called customer, Updated deal) */}
+            {customerProfileTab === 'ACTIVITIES' && (
+              <div className="space-y-3 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between mb-2">
+                  <span className="text-slate-400 text-xs font-semibold">Activity Timeline</span>
+                  <button
+                    type="button"
+                    onClick={() => toast.info('Log Activity', 'Quick log call/meeting opened.')}
+                    className="text-teal-400 hover:text-teal-300 text-xs font-semibold"
+                  >
+                    + Log Activity
+                  </button>
+                </div>
+                <Timeline items={activityTimeline} mode="vertical" />
+              </div>
+            )}
+
+            {/* TAB 3: DEALS */}
+            {customerProfileTab === 'DEALS' && (
+              <div className="space-y-3 animate-in fade-in duration-150">
+                <div className="flex items-center justify-between mb-1">
+                  <span className="text-slate-400 text-xs font-semibold">Associated Deals & Pipeline</span>
+                  <span className="font-mono text-teal-400 font-bold">$60,500 Total</span>
+                </div>
+
+                <div className="space-y-2.5">
+                  {mockDeals.map((deal) => (
+                    <div
+                      key={deal.id}
+                      className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl space-y-1.5"
+                    >
+                      <div className="flex items-center justify-between">
+                        <span className="font-bold text-slate-200">{deal.title}</span>
+                        <span className="font-mono font-bold text-teal-400">{deal.value}</span>
+                      </div>
+                      <div className="flex items-center justify-between text-[11px] text-slate-500">
+                        <span>Stage: <span className="text-slate-300">{deal.stage}</span></span>
+                        <span>Prob: {deal.probability}</span>
+                      </div>
+                      <div className="text-[10px] font-mono text-slate-500">
+                        Target Close: {deal.expectedClose}
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* TAB 4: ORDERS */}
+            {customerProfileTab === 'ORDERS' && (
+              <div className="space-y-3 animate-in fade-in duration-150">
+                <div className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between">
+                  <div>
+                    <span className="font-mono font-bold text-slate-200">ORD-2026-0919-01</span>
+                    <div className="text-[11px] text-slate-400 mt-0.5">2 Items • Shopify Provider Route</div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono font-bold text-emerald-400">$10,850.00</span>
+                    <span className="block text-[10px] text-slate-500">DELIVERED</span>
+                  </div>
+                </div>
+
+                <div className="p-3.5 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between">
+                  <div>
+                    <span className="font-mono font-bold text-slate-200">ORD-2026-0919-02</span>
+                    <div className="text-[11px] text-slate-400 mt-0.5">5 Items • Amazon Seller Central</div>
+                  </div>
+                  <div className="text-right">
+                    <span className="font-mono font-bold text-teal-400">$17,600.00</span>
+                    <span className="block text-[10px] text-teal-400">SHIPPED</span>
                   </div>
                 </div>
               </div>
-            </div>
+            )}
 
-            {/* Quick Actions */}
-            <div className="pt-4 border-t border-slate-800 flex items-center justify-between gap-3">
-              <button
-                onClick={() => {
-                  toast.info('Message Dispatched', `Notification sent to ${selectedCustomer.email}`);
-                }}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-slate-950 hover:bg-slate-800 border border-slate-800 text-slate-300 font-medium transition-colors"
-              >
-                <Send className="w-3.5 h-3.5" /> Send Notice
-              </button>
-              <button
-                onClick={() => {
-                  if (onSelectCustomerForOrder) {
-                    onSelectCustomerForOrder(selectedCustomer.id);
-                  }
-                  setSelectedCustomer(null);
-                  toast.info('Redirecting', 'Navigated to OMS order creation.');
-                }}
-                className="flex-1 flex items-center justify-center gap-1.5 px-3 py-2 rounded-xl bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold transition-colors shadow-lg shadow-teal-500/10"
-              >
-                <ShoppingCart className="w-3.5 h-3.5" /> New Order
-              </button>
-            </div>
+            {/* TAB 5: DOCUMENTS */}
+            {customerProfileTab === 'DOCUMENTS' && (
+              <div className="space-y-2.5 animate-in fade-in duration-150">
+                {mockDocuments.map((doc, idx) => (
+                  <div
+                    key={idx}
+                    className="p-3 bg-slate-950/80 border border-slate-800 rounded-xl flex items-center justify-between hover:border-slate-700 transition-colors"
+                  >
+                    <div className="flex items-center gap-2.5">
+                      <FileText className="w-4 h-4 text-cyan-400 shrink-0" />
+                      <div>
+                        <div className="font-medium text-slate-200">{doc.name}</div>
+                        <div className="text-[10px] text-slate-500 font-mono">
+                          {doc.type} • {doc.size}
+                        </div>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => toast.info('Downloading Document', `Fetching ${doc.name}...`)}
+                      className="p-1.5 text-slate-400 hover:text-teal-400"
+                    >
+                      <ExternalLink className="w-3.5 h-3.5" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
           </div>
         )}
       </Drawer>
 
       {/* Modal: Add Customer */}
-      <Modal isOpen={isModalOpen} onClose={() => setIsModalOpen(false)} title="Create New Customer">
+      <Modal
+        isOpen={isModalOpen}
+        onClose={() => setIsModalOpen(false)}
+        title="Add Customer Account"
+      >
         <form onSubmit={handleSubmit} className="space-y-4 text-xs">
           <div>
-            <label className="block text-slate-400 font-medium mb-1">Customer / Contact Name *</label>
+            <label className="block text-slate-400 font-medium mb-1">Full Name *</label>
             <input
               type="text"
               required
               value={formData.name}
               onChange={(e) => setFormData({ ...formData, name: e.target.value })}
-              placeholder="e.g. Sarah Jenkins"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+              placeholder="e.g. Eleanor Vance"
+              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
             />
           </div>
 
           <div>
-            <label className="block text-slate-400 font-medium mb-1">Work Email Address *</label>
+            <label className="block text-slate-400 font-medium mb-1">Email Address *</label>
             <input
               type="email"
               required
               value={formData.email}
               onChange={(e) => setFormData({ ...formData, email: e.target.value })}
-              placeholder="sarah@globaltech.com"
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+              placeholder="eleanor@acme.corp"
+              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
             />
           </div>
 
           <div className="grid grid-cols-2 gap-3">
+            <div>
+              <label className="block text-slate-400 font-medium mb-1">Phone</label>
+              <input
+                type="tel"
+                value={formData.phone}
+                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
+                placeholder="+1 (555) 000-0000"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+              />
+            </div>
+
             <div>
               <label className="block text-slate-400 font-medium mb-1">Company</label>
               <input
                 type="text"
                 value={formData.company}
                 onChange={(e) => setFormData({ ...formData, company: e.target.value })}
-                placeholder="GlobalTech Inc"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
-              />
-            </div>
-            <div>
-              <label className="block text-slate-400 font-medium mb-1">Phone</label>
-              <input
-                type="text"
-                value={formData.phone}
-                onChange={(e) => setFormData({ ...formData, phone: e.target.value })}
-                placeholder="+1-555-0123"
-                className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+                placeholder="Acme Global Inc"
+                className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
               />
             </div>
           </div>
 
           <div>
-            <label className="block text-slate-400 font-medium mb-1">Lifecycle Status</label>
+            <label className="block text-slate-400 font-medium mb-1">Status</label>
             <select
               value={formData.status}
-              onChange={(e) => setFormData({ ...formData, status: e.target.value as any })}
-              className="w-full bg-slate-950 border border-slate-800 rounded-xl px-3.5 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
+              onChange={(e) =>
+                setFormData({
+                  ...formData,
+                  status: e.target.value as 'LEAD' | 'ACTIVE' | 'INACTIVE',
+                })
+              }
+              className="w-full bg-slate-950 border border-slate-800 rounded-lg px-3 py-2 text-slate-200 focus:outline-none focus:border-teal-500"
             >
               <option value="ACTIVE">ACTIVE</option>
               <option value="LEAD">LEAD</option>
@@ -398,16 +631,16 @@ export const CrmView: React.FC<CrmViewProps> = ({
             <button
               type="button"
               onClick={() => setIsModalOpen(false)}
-              className="px-4 py-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
+              className="px-4 py-2 rounded-lg text-slate-400 hover:text-slate-200 hover:bg-slate-800 transition-colors"
             >
               Cancel
             </button>
             <button
               type="submit"
               disabled={loading}
-              className="px-5 py-2 rounded-xl bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold transition-colors disabled:opacity-50"
+              className="px-4 py-2 bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold rounded-lg transition-colors disabled:opacity-50"
             >
-              {loading ? 'Creating...' : 'Save Customer'}
+              {loading ? 'Creating...' : 'Save Account'}
             </button>
           </div>
         </form>
