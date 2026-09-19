@@ -5,145 +5,277 @@ import { DashboardView } from './views/DashboardView';
 import { CrmView } from './views/CrmView';
 import { ErpView } from './views/ErpView';
 import { OmsView } from './views/OmsView';
+import { ProvidersHubView } from './views/ProvidersHubView';
 import { WorkflowView } from './views/WorkflowView';
 import { SettingsView } from './views/SettingsView';
-import { Customer, Product, InventoryItem, Order, KpiSummary, WorkflowRule, WorkflowLog } from './types';
+import { ToastProvider } from './components/Toast';
+import {
+  Customer,
+  Product,
+  InventoryItem,
+  Order,
+  KpiSummary,
+  WorkflowRule,
+  WorkflowLog,
+  IntegrationProvider,
+} from './types';
 
-export const App: React.FC = () => {
+const MainApp: React.FC = () => {
   const [currentTab, setCurrentTab] = useState('dashboard');
   const [loading, setLoading] = useState(false);
 
-  // States
+  // KPIs
   const [kpis, setKpis] = useState<KpiSummary>({
-    total_revenue: 125840.5,
-    total_orders: 42,
-    avg_order_value: 2996.2,
-    total_customers: 18,
-    low_stock_count: 2,
+    total_revenue: 10850.0,
+    total_orders: 1,
+    avg_order_value: 10850.0,
+    total_customers: 1,
+    low_stock_count: 1,
   });
 
+  // Providers Ecosystem
+  const [providers, setProviders] = useState<IntegrationProvider[]>([
+    {
+      id: 'stripe',
+      name: 'Stripe Payments',
+      category: 'PAYMENTS',
+      description: 'Accept global credit cards, Apple Pay, Google Pay, and localized payment rails.',
+      status: 'CONNECTED',
+      environment: 'PRODUCTION',
+      iconType: 'CreditCard',
+      accentColor: 'from-indigo-500 to-purple-600',
+      apiKey: 'sk_live_51Msz9918230912401',
+      webhookUrl: 'https://api.ubop.internal/api/v1/webhooks/stripe',
+      signingSecret: 'whsec_99182390141',
+      autoSync: true,
+      latencyMs: 18,
+      lastTested: 'Just now',
+    },
+    {
+      id: 'paypal',
+      name: 'PayPal Commerce',
+      category: 'PAYMENTS',
+      description: 'Alternative payment methods, Pay in 4 installment billing, and international buyer wallet.',
+      status: 'CONFIGURED',
+      environment: 'SANDBOX',
+      iconType: 'CreditCard',
+      accentColor: 'from-blue-600 to-cyan-500',
+      apiKey: 'client_id_sandbox_9921',
+      webhookUrl: 'https://api.ubop.internal/api/v1/webhooks/paypal',
+      autoSync: false,
+      latencyMs: 42,
+    },
+    {
+      id: 'vnpay',
+      name: 'VNPay QR & Banking',
+      category: 'PAYMENTS',
+      description: 'Direct domestic payment gateway, QR-Pay, and VietQR instant bank transfer integration.',
+      status: 'CONFIGURED',
+      environment: 'SANDBOX',
+      iconType: 'CreditCard',
+      accentColor: 'from-red-600 to-rose-500',
+      apiKey: 'vnp_TmnCode_UBOP_DEV',
+      webhookUrl: 'https://api.ubop.internal/api/v1/webhooks/vnpay',
+      autoSync: true,
+      latencyMs: 31,
+    },
+    {
+      id: 'slack',
+      name: 'Slack Operations',
+      category: 'COMMUNICATIONS',
+      description: 'Stream event-driven alerts, urgent restock notifications, and order updates to Slack channels.',
+      status: 'CONNECTED',
+      environment: 'PRODUCTION',
+      iconType: 'MessageSquare',
+      accentColor: 'from-emerald-500 to-teal-500',
+      webhookUrl: 'https://hooks.slack.com/services/T00/B00/X00',
+      autoSync: true,
+      latencyMs: 24,
+      lastTested: '1 min ago',
+    },
+    {
+      id: 'sendgrid',
+      name: 'SendGrid Email API',
+      category: 'COMMUNICATIONS',
+      description: 'Deliver transactional emails, order receipts, and automated customer lifecycle notices.',
+      status: 'CONNECTED',
+      environment: 'PRODUCTION',
+      iconType: 'Mail',
+      accentColor: 'from-blue-500 to-indigo-600',
+      apiKey: 'SG.991823091.xxxxxxxx',
+      autoSync: true,
+      latencyMs: 28,
+    },
+    {
+      id: 'twilio',
+      name: 'Twilio SMS & WhatsApp',
+      category: 'COMMUNICATIONS',
+      description: 'Instant SMS order status updates and customer WhatsApp conversational messaging.',
+      status: 'AVAILABLE',
+      environment: 'SANDBOX',
+      iconType: 'Phone',
+      accentColor: 'from-rose-500 to-pink-600',
+      autoSync: false,
+    },
+    {
+      id: 'shipstation',
+      name: 'ShipStation Logistics',
+      category: 'LOGISTICS',
+      description: 'Multi-carrier shipping label generation, automated tracking numbers, and warehouse routing.',
+      status: 'CONNECTED',
+      environment: 'PRODUCTION',
+      iconType: 'Truck',
+      accentColor: 'from-teal-500 to-green-600',
+      apiKey: 'ss_api_key_881920',
+      autoSync: true,
+      latencyMs: 35,
+    },
+    {
+      id: 'hubspot',
+      name: 'HubSpot CRM Sync',
+      category: 'CRM',
+      description: 'Bi-directional synchronization of enterprise leads, deals, contacts, and customer activity.',
+      status: 'CONFIGURED',
+      environment: 'SANDBOX',
+      iconType: 'Users',
+      accentColor: 'from-orange-500 to-amber-600',
+      apiKey: 'pat-na1-8819204-xxxxxxxx',
+      autoSync: true,
+      latencyMs: 44,
+    },
+  ]);
+
+  // Customers
   const [customers, setCustomers] = useState<Customer[]>([
     {
       id: 1,
-      name: 'Apex Innovations',
-      email: 'procurement@apex.io',
-      company: 'Apex Technologies LLC',
-      phone: '+1 415-890-1234',
+      name: 'Apex Enterprises',
+      email: 'contact@apex.io',
+      company: 'Apex Global',
+      phone: '+1 555-0199',
       status: 'ACTIVE',
       created_at: new Date().toISOString(),
+      total_spent: 10850.0,
+      orders_count: 1,
     },
     {
       id: 2,
       name: 'Starlight Corp',
       email: 'ops@starlight.co',
-      company: 'Starlight Group',
+      company: 'Starlight Group LLC',
       phone: '+1 212-701-4455',
       status: 'LEAD',
       created_at: new Date().toISOString(),
+      total_spent: 0.0,
+      orders_count: 0,
     },
   ]);
 
+  // Products
   const [products, setProducts] = useState<Product[]>([
     {
       id: 1,
-      sku: 'SRV-ENT-900',
-      name: 'Enterprise Rack Server Dual Xeon',
+      sku: 'SRV-DL380-G11',
+      name: 'Enterprise Rack Server Pro Dual Xeon',
+      description: 'Scalable 2U server rack with hardware encryption and redundant power supplies.',
+      category: 'HARDWARE',
       price: 4500.0,
       cost: 2800.0,
       created_at: new Date().toISOString(),
     },
     {
       id: 2,
-      sku: 'NET-SW-48P',
-      name: 'Managed 48-Port PoE Switch',
-      price: 1200.0,
-      cost: 750.0,
+      sku: 'SW-CISCO-48',
+      name: '48-Port Gigabit Core Switch',
+      description: 'Managed enterprise switch with 10Gbps SFP+ uplinks and PoE+ support.',
+      category: 'NETWORK',
+      price: 1850.0,
+      cost: 1100.0,
       created_at: new Date().toISOString(),
     },
     {
       id: 3,
-      sku: 'LIC-UBOP-1Y',
-      name: 'UBOP Enterprise 1-Year Subscription',
+      sku: 'LIC-UBOP-ENT',
+      name: 'UBOP Enterprise 1-Year Cloud License',
+      description: 'Unlimited modules, 24/7 dedicated support, and custom provider adapter connectors.',
+      category: 'SOFTWARE',
       price: 12000.0,
-      cost: 1000.0,
+      cost: 500.0,
       created_at: new Date().toISOString(),
     },
   ]);
 
+  // Inventory
   const [inventory, setInventory] = useState<InventoryItem[]>([
-    { id: 1, product_id: 1, warehouse: 'MAIN', quantity: 24, reorder_level: 10 },
-    { id: 2, product_id: 2, warehouse: 'MAIN', quantity: 6, reorder_level: 10 },
+    { id: 1, product_id: 1, warehouse: 'MAIN', quantity: 23, reorder_level: 10 },
+    { id: 2, product_id: 2, warehouse: 'MAIN', quantity: 7, reorder_level: 10 },
     { id: 3, product_id: 3, warehouse: 'DIGITAL', quantity: 999, reorder_level: 0 },
   ]);
 
+  // Orders
   const [orders, setOrders] = useState<Order[]>([
     {
       id: 1,
       order_number: 'ORD-2026-0919-01',
       customer_id: 1,
-      status: 'DELIVERED',
-      total_amount: 9000.0,
-      created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
-      items: [{ product_id: 1, quantity: 2, unit_price: 4500.0 }],
-    },
-    {
-      id: 2,
-      order_number: 'ORD-2026-0919-02',
-      customer_id: 2,
+      customer_name: 'Apex Enterprises',
+      customer_email: 'contact@apex.io',
       status: 'CONFIRMED',
-      total_amount: 13200.0,
+      total_amount: 10850.0,
       created_at: new Date().toISOString(),
       items: [
-        { product_id: 2, quantity: 1, unit_price: 1200.0 },
-        { product_id: 3, quantity: 1, unit_price: 12000.0 },
+        { product_id: 1, quantity: 2, unit_price: 4500.0 },
+        { product_id: 2, quantity: 1, unit_price: 1850.0 },
       ],
     },
   ]);
 
+  // Workflow Rules
   const [workflowRules, setWorkflowRules] = useState<WorkflowRule[]>([
     {
       id: 1,
-      name: 'Auto-reserve Stock on Order Confirmation',
-      event_pattern: 'order.status_updated',
+      name: 'Auto-reserve Stock on Order Placement',
+      event_pattern: 'order.created',
       action_type: 'NOTIFY',
-      action_payload: '{"target": "warehouse"}',
+      action_payload: '{"target": "warehouse_main"}',
       is_active: true,
       created_at: new Date().toISOString(),
     },
     {
       id: 2,
-      name: 'Executive Slack Alert for VIP Deals',
-      event_pattern: 'order.created',
+      name: 'Dispatch Slack Alert for Large Enterprise Orders',
+      event_pattern: 'order.status_updated',
       action_type: 'WEBHOOK',
-      action_payload: '{"channel": "leadership"}',
+      action_payload: '{"channel": "leadership", "threshold": 5000}',
       is_active: true,
       created_at: new Date().toISOString(),
     },
   ]);
 
+  // Workflow Logs
   const [workflowLogs, setWorkflowLogs] = useState<WorkflowLog[]>([
     {
       id: 1,
-      rule_name: 'Auto-reserve Stock on Order Confirmation',
-      event_name: 'order.status_updated',
+      rule_name: 'Auto-reserve Stock on Order Placement',
+      event_name: 'order.created',
       status: 'SUCCESS',
-      output: 'Inventory successfully reserved for order ORD-2026-0919-02 in MAIN warehouse.',
+      output: 'Inventory reserved for ORD-2026-0919-01 (Qty: 2x Server, 1x Switch).',
       created_at: new Date().toISOString(),
     },
   ]);
 
-  // Try fetching live data from API
+  // Refresh data from API
   const refreshData = async () => {
     setLoading(true);
     try {
       const [kpiRes, custRes, prodRes, invRes, ordRes, ruleRes, logRes] = await Promise.allSettled([
-        fetch('/api/v1/bi/kpis').then((r) => r.ok ? r.json() : null),
-        fetch('/api/v1/crm/customers').then((r) => r.ok ? r.json() : null),
-        fetch('/api/v1/erp/products').then((r) => r.ok ? r.json() : null),
-        fetch('/api/v1/erp/inventory').then((r) => r.ok ? r.json() : null),
-        fetch('/api/v1/oms/orders').then((r) => r.ok ? r.json() : null),
-        fetch('/api/v1/workflow/rules').then((r) => r.ok ? r.json() : null),
-        fetch('/api/v1/workflow/logs').then((r) => r.ok ? r.json() : null),
+        fetch('/api/v1/bi/kpis').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/v1/crm/customers').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/v1/erp/products').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/v1/erp/inventory').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/v1/oms/orders').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/v1/workflow/rules').then((r) => (r.ok ? r.json() : null)),
+        fetch('/api/v1/workflow/logs').then((r) => (r.ok ? r.json() : null)),
       ]);
 
       if (kpiRes.status === 'fulfilled' && kpiRes.value) setKpis(kpiRes.value);
@@ -154,7 +286,7 @@ export const App: React.FC = () => {
       if (ruleRes.status === 'fulfilled' && ruleRes.value && ruleRes.value.length > 0) setWorkflowRules(ruleRes.value);
       if (logRes.status === 'fulfilled' && logRes.value && logRes.value.length > 0) setWorkflowLogs(logRes.value);
     } catch {
-      // Keep local state if API is offline
+      // Keep state
     } finally {
       setLoading(false);
     }
@@ -164,7 +296,16 @@ export const App: React.FC = () => {
     refreshData();
   }, []);
 
-  // Handlers
+  // Provider Handlers
+  const handleUpdateProvider = (updated: IntegrationProvider) => {
+    setProviders((prev) => prev.map((p) => (p.id === updated.id ? updated : p)));
+  };
+
+  const handleAddCustomProvider = (newProvider: IntegrationProvider) => {
+    setProviders((prev) => [newProvider, ...prev]);
+  };
+
+  // Business Handlers
   const handleCreateCustomer = async (custData: Partial<Customer>) => {
     try {
       const res = await fetch('/api/v1/crm/customers', {
@@ -178,9 +319,8 @@ export const App: React.FC = () => {
         setKpis((prev) => ({ ...prev, total_customers: prev.total_customers + 1 }));
         return;
       }
-    } catch {
-      // Fallback
-    }
+    } catch {}
+
     const localNew: Customer = {
       id: Date.now(),
       name: custData.name || 'New Customer',
@@ -189,6 +329,8 @@ export const App: React.FC = () => {
       phone: custData.phone,
       status: (custData.status as any) || 'ACTIVE',
       created_at: new Date().toISOString(),
+      total_spent: 0,
+      orders_count: 0,
     };
     setCustomers((prev) => [localNew, ...prev]);
     setKpis((prev) => ({ ...prev, total_customers: prev.total_customers + 1 }));
@@ -216,15 +358,15 @@ export const App: React.FC = () => {
         ]);
         return;
       }
-    } catch {
-      // Fallback
-    }
+    } catch {}
+
     const localId = Date.now();
     const localProd: Product = {
       id: localId,
       sku: prodData.sku,
       name: prodData.name,
       description: prodData.description,
+      category: prodData.category || 'HARDWARE',
       price: prodData.price,
       cost: prodData.cost,
       created_at: new Date().toISOString(),
@@ -249,9 +391,8 @@ export const App: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(adj),
       });
-    } catch {
-      // Fallback
-    }
+    } catch {}
+
     setInventory((prev) =>
       prev.map((item) =>
         item.product_id === adj.product_id
@@ -278,16 +419,15 @@ export const App: React.FC = () => {
         }));
         return;
       }
-    } catch {
-      // Fallback
-    }
+    } catch {}
+
     const totalAmount = orderData.items.reduce(
       (acc: number, item: any) => acc + item.quantity * item.unit_price,
       0
     );
     const localOrder: Order = {
       id: Date.now(),
-      order_number: `ORD-${Date.now().toString().slice(-6)}`,
+      order_number: `ORD-2026-${Date.now().toString().slice(-4)}`,
       customer_id: orderData.customer_id,
       status: 'PENDING',
       total_amount: totalAmount,
@@ -309,9 +449,8 @@ export const App: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ status }),
       });
-    } catch {
-      // Fallback
-    }
+    } catch {}
+
     setOrders((prev) =>
       prev.map((o) => (o.id === orderId ? { ...o, status: status as any } : o))
     );
@@ -329,10 +468,11 @@ export const App: React.FC = () => {
         setWorkflowRules((prev) => [...prev, created]);
         return;
       }
-    } catch {
-      // Fallback
-    }
-    setWorkflowRules((prev) => [...prev, { ...ruleData, id: Date.now(), created_at: new Date().toISOString() }]);
+    } catch {}
+    setWorkflowRules((prev) => [
+      ...prev,
+      { ...ruleData, id: Date.now(), created_at: new Date().toISOString() },
+    ]);
   };
 
   const handleTriggerExecution = async () => {
@@ -342,9 +482,7 @@ export const App: React.FC = () => {
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ trigger: 'manual_admin' }),
       });
-    } catch {
-      // Fallback
-    }
+    } catch {}
     setWorkflowLogs((prev) => [
       {
         id: Date.now(),
@@ -361,36 +499,55 @@ export const App: React.FC = () => {
   const getTabTitle = () => {
     switch (currentTab) {
       case 'dashboard':
-        return 'Operations Dashboard & BI';
+        return 'Executive Overview & Analytics';
       case 'crm':
-        return 'CRM & Customer Directory';
+        return 'Customer Relationship (CRM)';
       case 'erp':
-        return 'ERP, Catalog & Warehouse';
+        return 'ERP, Master Catalog & Warehousing';
       case 'oms':
         return 'Order Management & Fulfillment';
+      case 'providers':
+        return 'Integrations & Provider Ecosystem';
       case 'workflow':
-        return 'Workflow Automation Engine';
+        return 'Workflow & Event Automations Engine';
       case 'settings':
-        return 'Platform Settings & Adapters';
+        return 'Platform Architecture & Topology';
       default:
         return 'UBOP Platform';
     }
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-900 text-slate-100">
+    <div className="flex min-h-screen bg-slate-900 text-slate-100 antialiased selection:bg-teal-500 selection:text-slate-950">
       {/* Sidebar navigation */}
-      <Sidebar currentTab={currentTab} onTabChange={setCurrentTab} />
+      <Sidebar
+        currentTab={currentTab}
+        onTabChange={setCurrentTab}
+        connectedProvidersCount={providers.filter((p) => p.status === 'CONNECTED').length}
+      />
 
       {/* Main content body */}
       <div className="flex-1 flex flex-col min-w-0">
         <Header title={getTabTitle()} onRefresh={refreshData} loading={loading} />
 
         <main className="flex-1 p-8 overflow-y-auto">
-          {currentTab === 'dashboard' && <DashboardView kpis={kpis} recentOrders={orders} />}
-          {currentTab === 'crm' && (
-            <CrmView customers={customers} onCreateCustomer={handleCreateCustomer} />
+          {currentTab === 'dashboard' && (
+            <DashboardView
+              kpis={kpis}
+              recentOrders={orders}
+              onSelectOrder={() => setCurrentTab('oms')}
+              onNavigateTab={(tab) => setCurrentTab(tab)}
+            />
           )}
+
+          {currentTab === 'crm' && (
+            <CrmView
+              customers={customers}
+              onCreateCustomer={handleCreateCustomer}
+              onSelectCustomerForOrder={() => setCurrentTab('oms')}
+            />
+          )}
+
           {currentTab === 'erp' && (
             <ErpView
               products={products}
@@ -399,6 +556,7 @@ export const App: React.FC = () => {
               onAdjustStock={handleAdjustStock}
             />
           )}
+
           {currentTab === 'oms' && (
             <OmsView
               orders={orders}
@@ -408,6 +566,15 @@ export const App: React.FC = () => {
               onUpdateStatus={handleUpdateOrderStatus}
             />
           )}
+
+          {currentTab === 'providers' && (
+            <ProvidersHubView
+              providers={providers}
+              onUpdateProvider={handleUpdateProvider}
+              onAddCustomProvider={handleAddCustomProvider}
+            />
+          )}
+
           {currentTab === 'workflow' && (
             <WorkflowView
               rules={workflowRules}
@@ -416,9 +583,18 @@ export const App: React.FC = () => {
               onTriggerExecution={handleTriggerExecution}
             />
           )}
+
           {currentTab === 'settings' && <SettingsView />}
         </main>
       </div>
     </div>
+  );
+};
+
+export const App: React.FC = () => {
+  return (
+    <ToastProvider>
+      <MainApp />
+    </ToastProvider>
   );
 };
