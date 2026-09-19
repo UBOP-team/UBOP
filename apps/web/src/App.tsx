@@ -518,7 +518,7 @@ const MainApp: React.FC = () => {
   };
 
   return (
-    <div className="flex min-h-screen bg-slate-900 text-slate-100 antialiased selection:bg-teal-500 selection:text-slate-950">
+    <div className="flex min-h-screen bg-slate-50 text-slate-900 antialiased selection:bg-teal-500 selection:text-white">
       {/* Sidebar navigation */}
       <Sidebar
         currentTab={currentTab}

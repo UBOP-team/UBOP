@@ -69,27 +69,27 @@ export const Timeline: React.FC<TimelineProps> = ({
     switch (status) {
       case 'COMPLETED':
         return {
-          node: 'bg-emerald-500 text-slate-950 ring-4 ring-emerald-500/20',
-          line: 'bg-emerald-500/60',
-          text: 'text-slate-100',
+          node: 'bg-emerald-500 text-white ring-4 ring-emerald-100',
+          line: 'bg-emerald-400',
+          text: 'text-slate-900',
         };
       case 'IN_PROGRESS':
         return {
-          node: 'bg-teal-500 text-slate-950 ring-4 ring-teal-500/25 animate-pulse',
-          line: 'bg-slate-800',
-          text: 'text-teal-300 font-semibold',
+          node: 'bg-teal-600 text-white ring-4 ring-teal-100 animate-pulse',
+          line: 'bg-slate-200',
+          text: 'text-teal-700 font-semibold',
         };
       case 'FAILED':
         return {
-          node: 'bg-rose-500 text-slate-950 ring-4 ring-rose-500/20',
-          line: 'bg-slate-800',
-          text: 'text-rose-300',
+          node: 'bg-rose-500 text-white ring-4 ring-rose-100',
+          line: 'bg-slate-200',
+          text: 'text-rose-700',
         };
       default: // PENDING
         return {
-          node: 'bg-slate-800 text-slate-500 border border-slate-700',
-          line: 'bg-slate-800',
-          text: 'text-slate-400',
+          node: 'bg-slate-100 text-slate-400 border border-slate-300',
+          line: 'bg-slate-200',
+          text: 'text-slate-500',
         };
     }
   };
@@ -100,7 +100,7 @@ export const Timeline: React.FC<TimelineProps> = ({
       <div className="w-full py-3">
         <div className="flex items-center justify-between relative">
           {/* Background Track Line */}
-          <div className="absolute top-1/2 left-4 right-4 -translate-y-1/2 h-0.5 bg-slate-800 -z-0" />
+          <div className="absolute top-1/2 left-4 right-4 -translate-y-1/2 h-0.5 bg-slate-200 -z-0" />
 
           {items.map((item) => {
             const classes = getStatusClasses(item.status);
@@ -122,7 +122,7 @@ export const Timeline: React.FC<TimelineProps> = ({
                   <div className={`text-xs font-semibold ${classes.text} whitespace-nowrap`}>
                     {item.title}
                   </div>
-                  <div className="text-[10px] text-slate-500 font-mono mt-0.5">
+                  <div className="text-[10px] text-slate-400 font-mono mt-0.5">
                     {item.timestamp}
                   </div>
                 </div>
@@ -136,7 +136,7 @@ export const Timeline: React.FC<TimelineProps> = ({
 
   // Vertical Activity Timeline (Salesforce Lightning CRM style)
   return (
-    <div className="relative pl-6 space-y-6 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-800">
+    <div className="relative pl-6 space-y-4 before:absolute before:left-2.5 before:top-2 before:bottom-2 before:w-0.5 before:bg-slate-200">
       {items.map((item) => {
         const classes = getStatusClasses(item.status);
 
@@ -154,26 +154,26 @@ export const Timeline: React.FC<TimelineProps> = ({
             </div>
 
             {/* Content Card */}
-            <div className="bg-slate-950/70 border border-slate-800/90 hover:border-slate-700 rounded-xl p-3.5 transition-colors">
+            <div className="bg-white border border-slate-200/90 hover:border-slate-300 rounded-xl p-3.5 transition-colors shadow-xs">
               <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-1 mb-1">
                 <div className="flex items-center gap-2">
                   <span className={`text-xs font-semibold ${classes.text}`}>{item.title}</span>
                   {item.badge && (
-                    <span className="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-900 text-teal-400 border border-slate-800">
+                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-slate-100 text-teal-800 border border-slate-200 font-medium">
                       {item.badge}
                     </span>
                   )}
                 </div>
 
-                <div className="flex items-center gap-2 text-[10px] font-mono text-slate-500">
-                  {item.actor && <span className="text-slate-400 font-sans">by {item.actor}</span>}
+                <div className="flex items-center gap-2 text-[10px] font-mono text-slate-400">
+                  {item.actor && <span className="text-slate-600 font-sans">by {item.actor}</span>}
                   <span>•</span>
                   <span>{item.timestamp}</span>
                 </div>
               </div>
 
               {item.description && (
-                <p className="text-xs text-slate-400 leading-relaxed mt-1">
+                <p className="text-xs text-slate-500 leading-relaxed mt-1">
                   {item.description}
                 </p>
               )}

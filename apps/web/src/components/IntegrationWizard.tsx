@@ -4,7 +4,6 @@ import {
   ArrowRight,
   ArrowLeft,
   X,
-  Key,
   RefreshCw,
   Check,
 } from 'lucide-react';
@@ -76,14 +75,6 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
     },
   ];
 
-  const fieldMappings = [
-    { source: 'order.id', target: 'order.order_number', type: 'String' },
-    { source: 'order.total_price', target: 'order.total_amount', type: 'Float' },
-    { source: 'order.customer.email', target: 'order.customer_email', type: 'Email' },
-    { source: 'order.line_items.sku', target: 'erp.product.sku', type: 'Lookup' },
-    { source: 'order.fulfillment_status', target: 'order.status', type: 'Status Enum' },
-  ];
-
   if (!isOpen) return null;
 
   const handleTestConnection = () => {
@@ -120,7 +111,7 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
 
     onComplete(completedProvider);
     onClose();
-    toast.success('Provider Activated', `${completedProvider.name} is now actively connected to UBOP.`);
+    toast.success('Provider Activated', `${completedProvider.name} is now connected to UBOP.`);
   };
 
   const stepTitles = [
@@ -132,40 +123,40 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
   ];
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-950/85 backdrop-blur-sm animate-in fade-in duration-200">
-      <div className="bg-slate-900 border border-slate-800 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh]">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-slate-900/40 backdrop-blur-sm animate-smooth-fade">
+      <div className="bg-white border border-slate-200/90 rounded-2xl w-full max-w-3xl shadow-2xl overflow-hidden flex flex-col max-h-[90vh] animate-smooth-scale">
         {/* Wizard Header */}
-        <div className="px-6 py-4 border-b border-slate-800 bg-slate-950/60 flex items-center justify-between">
+        <div className="px-6 py-4.5 border-b border-slate-200 bg-white flex items-center justify-between">
           <div>
-            <span className="text-[10px] font-mono uppercase font-bold text-teal-400">
+            <span className="text-[10px] font-mono uppercase font-bold text-teal-700">
               Provider Connection Wizard • Step {currentStep} of 5
             </span>
-            <h3 className="text-base font-bold text-slate-100 mt-0.5">
+            <h3 className="text-base font-bold text-slate-900 mt-0.5">
               {stepTitles[currentStep - 1]}
             </h3>
           </div>
           <button
             onClick={onClose}
-            className="p-1.5 text-slate-400 hover:text-slate-200 hover:bg-slate-800 rounded-lg transition-colors"
+            className="p-1.5 text-slate-400 hover:text-slate-700 hover:bg-slate-100 rounded-lg transition-colors btn-press"
           >
             <X className="w-5 h-5" />
           </button>
         </div>
 
         {/* Step Progress Bar */}
-        <div className="w-full bg-slate-950 h-1 border-b border-slate-800">
+        <div className="w-full bg-slate-100 h-1">
           <div
-            className="bg-gradient-to-r from-teal-500 to-emerald-400 h-full transition-all duration-300"
+            className="bg-teal-600 h-full transition-all duration-300"
             style={{ width: `${(currentStep / 5) * 100}%` }}
           />
         </div>
 
         {/* Wizard Body */}
-        <div className="p-6 flex-1 overflow-y-auto text-xs">
+        <div className="p-6 flex-1 overflow-y-auto text-xs text-slate-700">
           {/* STEP 1: Select Provider */}
           {currentStep === 1 && (
-            <div className="space-y-4">
-              <p className="text-slate-400">
+            <div className="space-y-4 animate-smooth-fade">
+              <p className="text-slate-500">
                 Choose the external platform or capability service you wish to bind to UBOP:
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -175,30 +166,30 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
                     <div
                       key={prov.id}
                       onClick={() => setSelectedProviderId(prov.id)}
-                      className={`p-4 rounded-xl border cursor-pointer transition-all ${
+                      className={`p-4 rounded-xl border cursor-pointer transition-all duration-200 card-hover ${
                         isSelected
-                          ? 'bg-teal-500/10 border-teal-500/60 ring-1 ring-teal-500/30'
-                          : 'bg-slate-950/60 border-slate-800 hover:border-slate-700'
+                          ? 'bg-teal-50 border-teal-500 ring-1 ring-teal-500/20'
+                          : 'bg-slate-50 border-slate-200 hover:border-slate-300'
                       }`}
                     >
                       <div className="flex items-center justify-between mb-2">
                         <div
-                          className={`w-9 h-9 rounded-lg bg-gradient-to-tr ${prov.color} flex items-center justify-center font-bold text-slate-950 text-xs shadow-md`}
+                          className={`w-9 h-9 rounded-lg bg-gradient-to-tr ${prov.color} flex items-center justify-center font-bold text-white text-xs shadow-xs`}
                         >
                           {prov.iconText}
                         </div>
-                        {isSelected && <CheckCircle2 className="w-4 h-4 text-teal-400" />}
+                        {isSelected && <CheckCircle2 className="w-4 h-4 text-teal-600" />}
                       </div>
-                      <div className="font-bold text-slate-100 text-sm">{prov.name}</div>
-                      <div className="text-[10px] font-mono text-slate-500 uppercase mt-0.5">
+                      <div className="font-bold text-slate-900 text-sm">{prov.name}</div>
+                      <div className="text-[10px] font-mono text-slate-400 uppercase mt-0.5">
                         {prov.category}
                       </div>
-                      <p className="text-slate-400 text-xs mt-1.5 line-clamp-2">{prov.description}</p>
+                      <p className="text-slate-500 text-xs mt-1.5 line-clamp-2">{prov.description}</p>
                       <div className="flex flex-wrap gap-1 mt-3">
                         {prov.capabilities.map((cap) => (
                           <span
                             key={cap}
-                            className="text-[9px] px-1.5 py-0.5 rounded bg-slate-900 border border-slate-800 text-slate-300 font-mono"
+                            className="text-[9px] px-1.5 py-0.5 rounded bg-white border border-slate-200 text-slate-600 font-mono"
                           >
                             ✓ {cap}
                           </span>
@@ -213,48 +204,48 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
 
           {/* STEP 2: Authentication */}
           {currentStep === 2 && (
-            <div className="space-y-4">
-              <p className="text-slate-400">
+            <div className="space-y-4 animate-smooth-fade">
+              <p className="text-slate-500">
                 Configure connection credentials and execution environment:
               </p>
 
               <div className="grid grid-cols-2 gap-3">
                 <div
                   onClick={() => setEnvironment('PRODUCTION')}
-                  className={`p-3.5 rounded-xl border cursor-pointer ${
+                  className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-200 btn-press ${
                     environment === 'PRODUCTION'
-                      ? 'bg-teal-500/10 border-teal-500/50 text-teal-300'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400'
+                      ? 'bg-teal-50 border-teal-500 text-teal-900'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                   }`}
                 >
-                  <div className="font-bold text-slate-200">Production / Live</div>
+                  <div className="font-bold text-slate-900">Production / Live</div>
                   <div className="text-[11px] text-slate-500 mt-0.5">Connect to real customer data</div>
                 </div>
                 <div
                   onClick={() => setEnvironment('SANDBOX')}
-                  className={`p-3.5 rounded-xl border cursor-pointer ${
+                  className={`p-3.5 rounded-xl border cursor-pointer transition-all duration-200 btn-press ${
                     environment === 'SANDBOX'
-                      ? 'bg-teal-500/10 border-teal-500/50 text-teal-300'
-                      : 'bg-slate-950/60 border-slate-800 text-slate-400'
+                      ? 'bg-teal-50 border-teal-500 text-teal-900'
+                      : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                   }`}
                 >
-                  <div className="font-bold text-slate-200">Sandbox / Testnet</div>
-                  <div className="text-[11px] text-slate-500 mt-0.5">Mock testing & staging environment</div>
+                  <div className="font-bold text-slate-900">Sandbox / Staging</div>
+                  <div className="text-[11px] text-slate-500 mt-0.5">Mock testing environment</div>
                 </div>
               </div>
 
               <div>
-                <label className="block text-slate-300 font-medium mb-1">Authentication Method</label>
+                <label className="block text-slate-700 font-semibold mb-1.5">Authentication Protocol</label>
                 <div className="flex gap-2 mb-3">
                   {(['API_KEY', 'OAUTH', 'CUSTOM'] as const).map((method) => (
                     <button
                       key={method}
                       type="button"
                       onClick={() => setAuthMethod(method)}
-                      className={`px-3 py-1.5 rounded-lg font-mono text-xs font-semibold ${
+                      className={`px-3 py-1.5 rounded-lg font-mono text-[11px] transition-colors btn-press ${
                         authMethod === method
-                          ? 'bg-slate-800 text-teal-400 border border-teal-500/40'
-                          : 'bg-slate-950 border border-slate-800 text-slate-400'
+                          ? 'bg-slate-900 text-white font-bold'
+                          : 'bg-slate-50 border border-slate-200 text-slate-600 hover:bg-slate-100'
                       }`}
                     >
                       {method}
@@ -262,127 +253,113 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
                   ))}
                 </div>
 
-                <label className="block text-slate-400 font-medium mb-1">API Secret Access Key *</label>
-                <div className="relative">
-                  <Key className="w-4 h-4 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
-                  <input
-                    type="password"
-                    value={apiKey}
-                    onChange={(e) => setApiKey(e.target.value)}
-                    className="w-full bg-slate-950 border border-slate-800 rounded-xl pl-9 pr-3 py-2 text-slate-200 font-mono text-xs focus:outline-none focus:border-teal-500"
-                  />
-                </div>
-              </div>
-
-              <div className="p-3.5 bg-slate-950/60 border border-slate-800 rounded-xl flex items-center justify-between">
-                <span className="text-slate-400">Validate connection credentials before proceeding:</span>
-                <button
-                  type="button"
-                  onClick={handleTestConnection}
-                  disabled={isTesting}
-                  className="flex items-center gap-1.5 px-3 py-1.5 bg-slate-900 hover:bg-slate-800 border border-slate-700 text-teal-400 rounded-lg font-semibold transition-colors"
-                >
-                  <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
-                  {isTesting ? 'Testing...' : 'Test Handshake'}
-                </button>
+                {authMethod === 'API_KEY' && (
+                  <div>
+                    <label className="block text-slate-700 font-semibold mb-1">
+                      API Access Token
+                    </label>
+                    <input
+                      type="password"
+                      value={apiKey}
+                      onChange={(e) => setApiKey(e.target.value)}
+                      className="w-full bg-slate-50 border border-slate-200 rounded-xl px-3.5 py-2 font-mono text-slate-800 focus:outline-none focus:bg-white focus:border-teal-600 transition-all text-xs"
+                    />
+                    <span className="text-[10px] text-slate-400 mt-1 block">
+                      Encrypted using hardware AES-256 before disk persistence.
+                    </span>
+                  </div>
+                )}
               </div>
             </div>
           )}
 
-          {/* STEP 3: Permission & Field Mapping */}
+          {/* STEP 3: Permission & Schema Mapping */}
           {currentStep === 3 && (
-            <div className="space-y-4">
-              <div className="flex items-center justify-between">
-                <p className="text-slate-400">
-                  Map external provider entity schemas directly to UBOP core models:
-                </p>
-                <span className="text-[10px] font-mono text-teal-400 bg-teal-500/10 px-2 py-0.5 rounded border border-teal-500/20">
-                  Auto-mapped: 5 fields
-                </span>
-              </div>
-
-              <div className="bg-slate-950/80 border border-slate-800 rounded-xl overflow-hidden">
-                <table className="w-full text-left text-xs">
-                  <thead className="bg-slate-900/90 text-slate-400 font-mono uppercase text-[10px] border-b border-slate-800">
-                    <tr>
-                      <th className="px-4 py-2.5">External Provider Field</th>
-                      <th className="px-2 py-2.5 text-center">Direction</th>
-                      <th className="px-4 py-2.5">UBOP Enterprise Model</th>
-                      <th className="px-4 py-2.5">Data Type</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y divide-slate-800/60 font-mono text-slate-300">
-                    {fieldMappings.map((m, idx) => (
-                      <tr key={idx} className="hover:bg-slate-900/40">
-                        <td className="px-4 py-2.5 text-cyan-300">{m.source}</td>
-                        <td className="px-2 py-2.5 text-center text-teal-400">➔</td>
-                        <td className="px-4 py-2.5 text-emerald-300">{m.target}</td>
-                        <td className="px-4 py-2.5 text-slate-500 text-[10px]">{m.type}</td>
-                      </tr>
-                    ))}
-                  </tbody>
-                </table>
-              </div>
-
-              <p className="text-[11px] text-slate-500">
-                UBOP adapter layer automatically enforces schema transformations without modifying domain services.
+            <div className="space-y-4 animate-smooth-fade">
+              <p className="text-slate-500">
+                Verify automatic schema bindings between external provider payloads and canonical entities:
               </p>
+
+              <div className="border border-slate-200 rounded-xl overflow-hidden bg-white shadow-xs">
+                <div className="grid grid-cols-12 bg-slate-50 p-3 border-b border-slate-200 font-mono text-[11px] font-semibold text-slate-500 uppercase">
+                  <div className="col-span-5">External Provider Entity</div>
+                  <div className="col-span-2 text-center">Direction</div>
+                  <div className="col-span-5">UBOP Core Entity</div>
+                </div>
+
+                <div className="divide-y divide-slate-100 text-xs">
+                  <div className="grid grid-cols-12 p-3 items-center">
+                    <div className="col-span-5 font-mono text-teal-800">Shopify Order Record</div>
+                    <div className="col-span-2 text-center text-slate-400">➔</div>
+                    <div className="col-span-5 font-mono text-slate-800">UBOP.OMS.OrderEntity</div>
+                  </div>
+                  <div className="grid grid-cols-12 p-3 items-center">
+                    <div className="col-span-5 font-mono text-teal-800">Shopify Customer Record</div>
+                    <div className="col-span-2 text-center text-slate-400">➔</div>
+                    <div className="col-span-5 font-mono text-slate-800">UBOP.CRM.CustomerProfile</div>
+                  </div>
+                  <div className="grid grid-cols-12 p-3 items-center">
+                    <div className="col-span-5 font-mono text-teal-800">Shopify Inventory Levels</div>
+                    <div className="col-span-2 text-center text-slate-400">➔</div>
+                    <div className="col-span-5 font-mono text-slate-800">UBOP.ERP.InventoryStock</div>
+                  </div>
+                </div>
+              </div>
             </div>
           )}
 
           {/* STEP 4: Data Sync Policy */}
           {currentStep === 4 && (
-            <div className="space-y-5">
+            <div className="space-y-4 animate-smooth-fade">
+              <p className="text-slate-500">Define synchronization direction and cadence:</p>
+
               <div>
-                <label className="block text-slate-300 font-semibold mb-2">Sync Direction</label>
-                <div className="grid grid-cols-3 gap-3">
+                <label className="block text-slate-700 font-semibold mb-2">Sync Direction</label>
+                <div className="grid grid-cols-3 gap-2">
                   {[
-                    { id: 'BI', label: 'Bidirectional (Full Sync)', desc: '2-way automatic state sync' },
-                    { id: 'INBOUND', label: 'Inbound Only', desc: 'External ➔ UBOP records' },
-                    { id: 'OUTBOUND', label: 'Outbound Only', desc: 'UBOP ➔ External dispatch' },
+                    { id: 'BI', label: 'Bidirectional' },
+                    { id: 'INBOUND', label: 'Provider ➔ UBOP' },
+                    { id: 'OUTBOUND', label: 'UBOP ➔ Provider' },
                   ].map((dir) => (
-                    <div
+                    <button
                       key={dir.id}
+                      type="button"
                       onClick={() => setSyncDirection(dir.id as any)}
-                      className={`p-3 rounded-xl border cursor-pointer transition-all ${
+                      className={`p-3 rounded-xl border text-center text-xs font-semibold transition-all btn-press ${
                         syncDirection === dir.id
-                          ? 'bg-teal-500/10 border-teal-500/50 text-teal-300'
-                          : 'bg-slate-950/60 border-slate-800 text-slate-400'
+                          ? 'bg-teal-50 border-teal-500 text-teal-900 font-bold'
+                          : 'bg-slate-50 border-slate-200 text-slate-600 hover:border-slate-300'
                       }`}
                     >
-                      <div className="font-bold text-slate-200 text-xs">{dir.label}</div>
-                      <div className="text-[10px] text-slate-500 mt-1">{dir.desc}</div>
-                    </div>
+                      {dir.label}
+                    </button>
                   ))}
                 </div>
               </div>
 
-              <div>
-                <label className="block text-slate-300 font-semibold mb-2">Sync Frequency</label>
+              <div className="pt-2">
+                <label className="block text-slate-700 font-semibold mb-2">Sync Frequency</label>
                 <div className="space-y-2">
                   {[
-                    { id: 'REALTIME', label: 'Real-time Event Webhooks', desc: 'Zero-latency event bus dispatch (Recommended)' },
-                    { id: '15M', label: 'Every 15 Minutes Polling', desc: 'Periodic batch delta synchronization' },
-                    { id: 'DAILY', label: 'Daily Batch Sync', desc: 'Midnight scheduled reconciliation' },
+                    { id: 'REALTIME', label: 'Realtime Webhook Stream (Instant EventBus)' },
+                    { id: '15M', label: 'Every 15 Minutes (Low latency batch)' },
+                    { id: 'DAILY', label: 'Daily Midnight Reconcile (Audit only)' },
                   ].map((freq) => (
                     <div
                       key={freq.id}
                       onClick={() => setSyncFrequency(freq.id as any)}
-                      className={`p-3 rounded-xl border cursor-pointer flex items-center justify-between ${
+                      className={`p-3 rounded-xl border flex items-center justify-between cursor-pointer transition-all ${
                         syncFrequency === freq.id
-                          ? 'bg-teal-500/10 border-teal-500/50'
-                          : 'bg-slate-950/60 border-slate-800'
+                          ? 'bg-teal-50 border-teal-500 text-teal-900 font-bold'
+                          : 'bg-slate-50 border-slate-200 text-slate-700 hover:border-slate-300'
                       }`}
                     >
-                      <div>
-                        <div className="font-bold text-slate-200">{freq.label}</div>
-                        <div className="text-slate-500 text-[11px]">{freq.desc}</div>
-                      </div>
+                      <span>{freq.label}</span>
                       <input
                         type="radio"
                         checked={syncFrequency === freq.id}
-                        onChange={() => setSyncFrequency(freq.id as any)}
-                        className="accent-teal-500 w-4 h-4 cursor-pointer"
+                        onChange={() => {}}
+                        className="accent-teal-600"
                       />
                     </div>
                   ))}
@@ -393,71 +370,92 @@ export const IntegrationWizard: React.FC<IntegrationWizardProps> = ({
 
           {/* STEP 5: Review & Activate */}
           {currentStep === 5 && (
-            <div className="space-y-4">
-              <div className="p-4 bg-emerald-500/10 border border-emerald-500/30 rounded-xl flex items-center gap-3">
-                <CheckCircle2 className="w-5 h-5 text-emerald-400 shrink-0" />
+            <div className="space-y-4 animate-smooth-fade">
+              <p className="text-slate-500">Confirm adapter parameters and execute pre-flight ping:</p>
+
+              <div className="p-4 bg-slate-50 border border-slate-200 rounded-xl grid grid-cols-2 gap-3">
                 <div>
-                  <div className="font-bold text-emerald-300 text-sm">Provider Ready for Deployment</div>
-                  <div className="text-slate-400 text-xs mt-0.5">
-                    All authentication parameters, field bindings, and sync triggers have been validated.
-                  </div>
+                  <span className="text-[10px] uppercase font-mono text-slate-400 block">Selected Connector</span>
+                  <span className="font-bold text-slate-900 text-sm">
+                    {catalogProviders.find((c) => c.id === selectedProviderId)?.name}
+                  </span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-mono text-slate-400 block">Direction</span>
+                  <span className="font-mono text-teal-800 font-bold">{syncDirection}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-mono text-slate-400 block">Cadence</span>
+                  <span className="font-mono text-slate-700">{syncFrequency}</span>
+                </div>
+                <div>
+                  <span className="text-[10px] uppercase font-mono text-slate-400 block">Security Vault</span>
+                  <span className="font-mono text-emerald-700 font-bold">AES-256 Armed</span>
                 </div>
               </div>
 
-              <div className="p-4 bg-slate-950/80 border border-slate-800 rounded-xl space-y-2.5">
-                <div className="flex justify-between text-slate-300">
-                  <span className="text-slate-500">Target Provider:</span>
-                  <span className="font-bold text-slate-100 uppercase font-mono">{selectedProviderId}</span>
+              {/* Ping Test Button */}
+              <div className="p-4 bg-white border border-slate-200 rounded-xl flex items-center justify-between shadow-xs">
+                <div>
+                  <div className="font-bold text-slate-900">Synthetic Handshake Ping</div>
+                  <div className="text-[11px] text-slate-500">Test webhook round-trip before enabling live traffic</div>
                 </div>
-                <div className="flex justify-between text-slate-300">
-                  <span className="text-slate-500">Environment:</span>
-                  <span className="font-mono text-teal-400">{environment}</span>
-                </div>
-                <div className="flex justify-between text-slate-300">
-                  <span className="text-slate-500">Connected Capabilities:</span>
-                  <span className="font-semibold text-slate-200">OMS (Orders), ERP (Stock), CRM</span>
-                </div>
-                <div className="flex justify-between text-slate-300">
-                  <span className="text-slate-500">Sync Cadence:</span>
-                  <span className="font-mono text-slate-200">{syncFrequency} ({syncDirection})</span>
-                </div>
-                <div className="flex justify-between text-slate-300">
-                  <span className="text-slate-500">Handshake Latency:</span>
-                  <span className="font-mono text-emerald-400">19ms (Verified)</span>
-                </div>
+
+                <button
+                  type="button"
+                  onClick={handleTestConnection}
+                  disabled={isTesting}
+                  className="px-4 py-2 bg-slate-900 hover:bg-slate-800 text-white font-bold rounded-xl text-xs flex items-center gap-2 transition-all btn-press disabled:opacity-50"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${isTesting ? 'animate-spin' : ''}`} />
+                  {isTesting ? 'Pinging...' : 'Test Connection'}
+                </button>
               </div>
             </div>
           )}
         </div>
 
-        {/* Wizard Footer Navigation */}
-        <div className="px-6 py-4 border-t border-slate-800 bg-slate-950/60 flex items-center justify-between">
-          <button
-            type="button"
-            disabled={currentStep === 1}
-            onClick={() => setCurrentStep((prev) => Math.max(1, prev - 1))}
-            className="flex items-center gap-1.5 px-4 py-2 rounded-xl text-slate-400 hover:text-slate-200 hover:bg-slate-800 disabled:opacity-30 disabled:pointer-events-none transition-colors"
-          >
-            <ArrowLeft className="w-4 h-4" /> Back
-          </button>
+        {/* Wizard Footer */}
+        <div className="px-6 py-4 border-t border-slate-200 bg-slate-50/70 flex items-center justify-between">
+          <div>
+            {currentStep > 1 && (
+              <button
+                type="button"
+                onClick={() => setCurrentStep(currentStep - 1)}
+                className="flex items-center gap-1.5 px-4 py-2 bg-white hover:bg-slate-100 border border-slate-200 text-slate-700 rounded-xl text-xs font-semibold transition-colors btn-press"
+              >
+                <ArrowLeft className="w-4 h-4" /> Back
+              </button>
+            )}
+          </div>
 
-          {currentStep < 5 ? (
+          <div className="flex items-center gap-2">
             <button
               type="button"
-              onClick={() => setCurrentStep((prev) => Math.min(5, prev + 1))}
-              className="flex items-center gap-1.5 px-5 py-2 bg-teal-500 hover:bg-teal-600 text-slate-950 font-bold rounded-xl shadow-lg shadow-teal-500/10 transition-colors"
+              onClick={onClose}
+              className="px-4 py-2 text-slate-600 hover:text-slate-900 rounded-xl text-xs font-medium transition-colors"
             >
-              Continue <ArrowRight className="w-4 h-4" />
+              Cancel
             </button>
-          ) : (
-            <button
-              type="button"
-              onClick={handleFinish}
-              className="flex items-center gap-1.5 px-6 py-2 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-slate-950 font-extrabold rounded-xl shadow-lg shadow-emerald-500/20 transition-all"
-            >
-              <Check className="w-4 h-4" /> Activate Provider
-            </button>
-          )}
+
+            {currentStep < 5 ? (
+              <button
+                type="button"
+                onClick={() => setCurrentStep(currentStep + 1)}
+                className="flex items-center gap-1.5 px-5 py-2 bg-teal-600 hover:bg-teal-700 text-white font-bold rounded-xl text-xs transition-all shadow-sm btn-press"
+              >
+                Continue <ArrowRight className="w-4 h-4" />
+              </button>
+            ) : (
+              <button
+                type="button"
+                onClick={handleFinish}
+                className="flex items-center gap-1.5 px-6 py-2 bg-emerald-600 hover:bg-emerald-700 text-white font-bold rounded-xl text-xs transition-all shadow-sm btn-press"
+              >
+                <Check className="w-4 h-4" /> Activate Provider
+              </button>
+            )}
+          </div>
         </div>
       </div>
     </div>
