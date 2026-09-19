@@ -1,0 +1,12 @@
+{
+  "name": "ubop",
+  "private": true,
+  "scripts": {
+    "dev:web": "pnpm --filter ubop-web dev",
+    "build:web": "pnpm --filter ubop-web build",
+    "lint:web": "pnpm --filter ubop-web lint",
+    "test:web": "pnpm --filter ubop-web test",
+    "test": "echo \"Run tests for apps/api and apps/web\""
+  },
+  "packageManager": "pnpm@10.5.2"
+}
