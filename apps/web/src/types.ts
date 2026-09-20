@@ -411,3 +411,276 @@ export interface UserProfile {
   avatarInitials: string;
   organization: string;
 }
+
+// ====================================================================
+// CANONICAL ERP DOMAIN TYPES (SAP Fiori / S/4HANA Interaction Patterns)
+// ====================================================================
+
+export interface StorageLocation {
+  id: number;
+  warehouse_id: number;
+  code: string;
+  name: string;
+  type: 'MAIN' | 'RETURNS' | 'QUALITY_INSPECTION' | 'BLOCKED_STOCK';
+  status: 'ACTIVE' | 'INACTIVE';
+  created_at: string;
+}
+
+export interface Warehouse {
+  id: number;
+  code: string;
+  name: string;
+  status: 'ACTIVE' | 'INACTIVE';
+  address?: string;
+  timezone: string;
+  provider_reference?: string;
+  sync_status: 'SYNCED' | 'PENDING' | 'FAILED';
+  created_at: string;
+  storage_locations?: StorageLocation[];
+}
+
+export interface InventoryPosition {
+  id: number;
+  organization_id: string;
+  product_reference: string;
+  product_name?: string;
+  warehouse_id: number;
+  storage_location_id?: number;
+  on_hand_quantity: number;
+  reserved_quantity: number;
+  blocked_quantity: number;
+  incoming_quantity: number;
+  available_quantity: number;
+  unit: string;
+  reorder_threshold: number;
+  unit_cost: number;
+  stock_status: 'HEALTHY' | 'LOW' | 'OUT_OF_STOCK' | 'BLOCKED' | 'OVERSTOCK';
+  version: number;
+  created_at: string;
+  updated_at?: string;
+}
+
+export interface GoodsMovement {
+  id: number;
+  movement_number: string;
+  movement_type:
+    | 'GOODS_RECEIPT'
+    | 'GOODS_ISSUE'
+    | 'TRANSFER_OUT'
+    | 'TRANSFER_IN'
+    | 'ADJUSTMENT_IN'
+    | 'ADJUSTMENT_OUT'
+    | 'RETURN_TO_SUPPLIER'
+    | 'RESERVATION_CONSUMPTION';
+  product_reference: string;
+  quantity: number;
+  unit: string;
+  from_warehouse_id?: number;
+  to_warehouse_id?: number;
+  reference_type?: string;
+  reference_id?: string;
+  reason_code?: string;
+  note?: string;
+  actor_id: string;
+  posted_at: string;
+  sync_status: string;
+}
+
+export interface Supplier {
+  id: number;
+  supplier_code: string;
+  name: string;
+  status: 'ACTIVE' | 'ON_HOLD' | 'INACTIVE';
+  tax_identifier?: string;
+  email?: string;
+  phone?: string;
+  address?: string;
+  payment_terms: string;
+  currency: string;
+  provider_reference?: string;
+  sync_status: 'SYNCED' | 'PENDING' | 'FAILED';
+  created_at: string;
+}
+
+export interface PurchaseRequisitionLine {
+  id: number;
+  requisition_id: number;
+  product_reference: string;
+  description_snapshot?: string;
+  quantity: number;
+  ordered_quantity: number;
+  unit: string;
+  estimated_unit_cost: number;
+  currency: string;
+  preferred_supplier_id?: number;
+  warehouse_id?: number;
+}
+
+export interface PurchaseRequisition {
+  id: number;
+  requisition_number: string;
+  requester_id: string;
+  status: 'DRAFT' | 'SUBMITTED' | 'APPROVED' | 'REJECTED' | 'PARTIALLY_ORDERED' | 'ORDERED' | 'CANCELLED';
+  needed_by?: string;
+  reason?: string;
+  rejection_reason?: string;
+  created_at: string;
+  lines: PurchaseRequisitionLine[];
+}
+
+export interface PurchaseOrderLine {
+  id: number;
+  purchase_order_id: number;
+  product_reference: string;
+  description_snapshot?: string;
+  ordered_quantity: number;
+  received_quantity: number;
+  unit: string;
+  unit_cost: number;
+  line_total: number;
+  expected_delivery_date?: string;
+}
+
+export interface PurchaseOrder {
+  id: number;
+  po_number: string;
+  supplier_id: number;
+  buyer_id: string;
+  status:
+    | 'DRAFT'
+    | 'PENDING_APPROVAL'
+    | 'APPROVED'
+    | 'SENT'
+    | 'PARTIALLY_RECEIVED'
+    | 'RECEIVED'
+    | 'CANCELLED'
+    | 'CLOSED';
+  currency: string;
+  subtotal: number;
+  tax_total: number;
+  shipping_total: number;
+  grand_total: number;
+  order_date: string;
+  expected_delivery_date?: string;
+  warehouse_id: number;
+  provider_reference?: string;
+  sync_status: 'SYNCED' | 'PENDING' | 'FAILED';
+  notes?: string;
+  created_at: string;
+  lines: PurchaseOrderLine[];
+  supplier?: Supplier;
+}
+
+export interface GoodsReceiptLine {
+  id: number;
+  goods_receipt_id: number;
+  purchase_order_line_id?: number;
+  product_reference: string;
+  expected_quantity: number;
+  received_quantity: number;
+  accepted_quantity: number;
+  blocked_quantity: number;
+  damaged_quantity: number;
+  unit: string;
+  storage_location_id?: number;
+  note?: string;
+}
+
+export interface GoodsReceipt {
+  id: number;
+  receipt_number: string;
+  purchase_order_id?: number;
+  warehouse_id: number;
+  status: 'DRAFT' | 'POSTED' | 'REVERSED';
+  received_at: string;
+  received_by: string;
+  supplier_delivery_reference?: string;
+  note?: string;
+  provider_reference?: string;
+  sync_status: string;
+  created_at: string;
+  lines: GoodsReceiptLine[];
+}
+
+export interface StockTransferLine {
+  id: number;
+  stock_transfer_id: number;
+  product_reference: string;
+  requested_quantity: number;
+  shipped_quantity: number;
+  received_quantity: number;
+  unit: string;
+}
+
+export interface StockTransfer {
+  id: number;
+  transfer_number: string;
+  from_warehouse_id: number;
+  to_warehouse_id: number;
+  status: 'DRAFT' | 'READY' | 'IN_TRANSIT' | 'PARTIALLY_RECEIVED' | 'RECEIVED' | 'CANCELLED';
+  requested_at: string;
+  shipped_at?: string;
+  received_at?: string;
+  created_by: string;
+  notes?: string;
+  created_at: string;
+  lines: StockTransferLine[];
+}
+
+export interface SupplierInvoice {
+  id: number;
+  invoice_number: string;
+  supplier_id: number;
+  purchase_order_id?: number;
+  status:
+    | 'DRAFT'
+    | 'PENDING_REVIEW'
+    | 'MATCHED'
+    | 'MISMATCH'
+    | 'APPROVED'
+    | 'PAYMENT_READY'
+    | 'PAID'
+    | 'CANCELLED';
+  invoice_date: string;
+  due_date?: string;
+  currency: string;
+  subtotal: number;
+  tax_total: number;
+  grand_total: number;
+  matched_amount: number;
+  variance_amount: number;
+  match_status: 'PENDING' | 'MATCHED' | 'QUANTITY_MISMATCH' | 'PRICE_MISMATCH' | 'MISSING_RECEIPT' | 'MISSING_PO';
+  resolution_note?: string;
+  provider_reference?: string;
+  sync_status: string;
+  created_at: string;
+  supplier?: Supplier;
+}
+
+export interface CostTransaction {
+  id: number;
+  type: 'PURCHASE_COST' | 'SHIPPING_COST' | 'HANDLING_COST' | 'ADJUSTMENT_COST';
+  reference_type: string;
+  reference_id: string;
+  amount: number;
+  currency: string;
+  category: string;
+  posted_at: string;
+  note?: string;
+  created_at: string;
+}
+
+export interface ErpOverviewMetrics {
+  total_stock_value: number;
+  low_stock_count: number;
+  blocked_stock_count: number;
+  incoming_quantity: number;
+  open_pos_count: number;
+  open_pos_value: number;
+  pos_awaiting_approval: number;
+  pos_overdue: number;
+  invoices_awaiting_review: number;
+  invoices_mismatch: number;
+  transfers_in_transit: number;
+}
+
