@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useRef } from 'react';
+import React, { useState, useEffect, useRef, useMemo } from 'react';
 import {
   Search,
   LayoutDashboard,
@@ -9,12 +9,18 @@ import {
   Layers,
   Plus,
   Zap,
+  BarChart3,
+  ShieldCheck,
+  Building,
+  Package,
 } from 'lucide-react';
+import { Customer, Order, Product, IntegrationProvider } from '../types';
 
 interface CommandItem {
   id: string;
   title: string;
-  category: 'NAVIGATION' | 'ACTIONS';
+  category: 'CUSTOMERS' | 'ORDERS' | 'PRODUCTS' | 'PROVIDERS' | 'ACTIONS' | 'NAVIGATION';
+  subtitle?: string;
   shortcut?: string;
   icon: React.ComponentType<{ className?: string }>;
   onSelect: () => void;
@@ -23,8 +29,12 @@ interface CommandItem {
 interface CommandPaletteProps {
   isOpen: boolean;
   onClose: () => void;
-  onNavigate: (tab: string) => void;
+  onNavigate: (tab: string, subTab?: string) => void;
   onAction?: (actionId: string) => void;
+  customers?: Customer[];
+  orders?: Order[];
+  products?: Product[];
+  providers?: IntegrationProvider[];
 }
 
 export const CommandPalette: React.FC<CommandPaletteProps> = ({
@@ -32,113 +42,191 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
   onClose,
   onNavigate,
   onAction,
+  customers = [],
+  orders = [],
+  products = [],
+  providers = [],
 }) => {
   const [query, setQuery] = useState('');
   const [selectedIndex, setSelectedIndex] = useState(0);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const items: CommandItem[] = [
-    {
-      id: 'nav-dashboard',
-      title: 'Go to Command Center (Executive Overview)',
-      category: 'NAVIGATION',
-      shortcut: 'G D',
-      icon: LayoutDashboard,
-      onSelect: () => onNavigate('dashboard'),
-    },
-    {
-      id: 'nav-crm',
-      title: 'Go to Customer Relationship Management (CRM)',
-      category: 'NAVIGATION',
-      shortcut: 'G C',
-      icon: Users,
-      onSelect: () => onNavigate('crm'),
-    },
-    {
-      id: 'nav-oms',
-      title: 'Go to Order Management System (OMS)',
-      category: 'NAVIGATION',
-      shortcut: 'G O',
-      icon: ShoppingCart,
-      onSelect: () => onNavigate('oms'),
-    },
-    {
-      id: 'nav-erp',
-      title: 'Go to Enterprise Resource Planning (ERP)',
-      category: 'NAVIGATION',
-      shortcut: 'G E',
-      icon: Boxes,
-      onSelect: () => onNavigate('erp'),
-    },
-    {
-      id: 'nav-bi',
-      title: 'Go to Business Intelligence & Telemetry (BI)',
-      category: 'NAVIGATION',
-      shortcut: 'G B',
-      icon: LayoutDashboard,
-      onSelect: () => onNavigate('bi'),
-    },
-    {
-      id: 'nav-workflows',
-      title: 'Go to Automation & Workflows',
-      category: 'NAVIGATION',
-      shortcut: 'G W',
-      icon: GitMerge,
-      onSelect: () => onNavigate('workflow'),
-    },
-    {
-      id: 'nav-providers',
-      title: 'Go to Integrations & Provider Ecosystem',
-      category: 'NAVIGATION',
-      shortcut: 'G P',
-      icon: Layers,
-      onSelect: () => onNavigate('providers'),
-    },
-    {
-      id: 'action-create-sku',
-      title: 'Add New Catalog SKU (ERP)',
-      category: 'ACTIONS',
-      icon: Plus,
-      onSelect: () => {
-        onNavigate('erp');
-        if (onAction) onAction('create-sku');
+  const baseItems: CommandItem[] = useMemo(
+    () => [
+      {
+        id: 'nav-dashboard',
+        title: 'Command Center (Executive Pulse)',
+        category: 'NAVIGATION',
+        shortcut: 'G D',
+        icon: LayoutDashboard,
+        onSelect: () => onNavigate('dashboard'),
       },
-    },
-    {
-      id: 'action-create-order',
-      title: 'Ingest Omnichannel Order (OMS)',
-      category: 'ACTIONS',
-      icon: Plus,
-      onSelect: () => {
-        onNavigate('oms');
-        if (onAction) onAction('create-order');
+      {
+        id: 'nav-crm',
+        title: 'Customer Relationship Management (CRM)',
+        category: 'NAVIGATION',
+        shortcut: 'G C',
+        icon: Users,
+        onSelect: () => onNavigate('crm', 'CUSTOMERS'),
       },
-    },
-    {
-      id: 'action-create-customer',
-      title: 'Register Customer Record (CRM)',
-      category: 'ACTIONS',
-      icon: Plus,
-      onSelect: () => {
-        onNavigate('crm');
-        if (onAction) onAction('create-customer');
+      {
+        id: 'nav-oms',
+        title: 'Order Management System (OMS)',
+        category: 'NAVIGATION',
+        shortcut: 'G O',
+        icon: ShoppingCart,
+        onSelect: () => onNavigate('oms', 'ORDERS'),
       },
-    },
-    {
-      id: 'action-test-ping',
-      title: 'Test All Integration Providers Handshake',
-      category: 'ACTIONS',
-      icon: Zap,
-      onSelect: () => {
-        onNavigate('providers');
-        if (onAction) onAction('test-all-ping');
+      {
+        id: 'nav-erp',
+        title: 'Enterprise Resource Planning (ERP)',
+        category: 'NAVIGATION',
+        shortcut: 'G E',
+        icon: Boxes,
+        onSelect: () => onNavigate('erp', 'INVENTORY'),
       },
-    },
-  ];
-
-  const filteredItems = items.filter((item) =>
-    item.title.toLowerCase().includes(query.toLowerCase())
+      {
+        id: 'nav-bi',
+        title: 'Business Intelligence & Telemetry (BI)',
+        category: 'NAVIGATION',
+        shortcut: 'G B',
+        icon: BarChart3,
+        onSelect: () => onNavigate('bi', 'OVERVIEW'),
+      },
+      {
+        id: 'nav-workflows',
+        title: 'Automation & Visual Flows',
+        category: 'NAVIGATION',
+        shortcut: 'G W',
+        icon: GitMerge,
+        onSelect: () => onNavigate('workflow', 'FLOW_CANVAS'),
+      },
+      {
+        id: 'nav-providers',
+        title: 'Integrations & Provider Ecosystem',
+        category: 'NAVIGATION',
+        shortcut: 'G P',
+        icon: Layers,
+        onSelect: () => onNavigate('providers', 'MARKETPLACE'),
+      },
+      {
+        id: 'nav-settings',
+        title: 'Platform Administration & Topology',
+        category: 'NAVIGATION',
+        icon: ShieldCheck,
+        onSelect: () => onNavigate('settings'),
+      },
+      {
+        id: 'action-create-sku',
+        title: 'Add New Master Catalog SKU',
+        category: 'ACTIONS',
+        icon: Plus,
+        onSelect: () => {
+          onNavigate('erp', 'INVENTORY');
+          if (onAction) onAction('create-sku');
+        },
+      },
+      {
+        id: 'action-create-order',
+        title: 'Ingest Omnichannel Customer Order',
+        category: 'ACTIONS',
+        icon: Plus,
+        onSelect: () => {
+          onNavigate('oms', 'ORDERS');
+          if (onAction) onAction('create-order');
+        },
+      },
+      {
+        id: 'action-create-customer',
+        title: 'Register Enterprise Customer Record',
+        category: 'ACTIONS',
+        icon: Plus,
+        onSelect: () => {
+          onNavigate('crm', 'CUSTOMERS');
+          if (onAction) onAction('create-customer');
+        },
+      },
+      {
+        id: 'action-test-ping',
+        title: 'Test All Integration Providers Handshake',
+        category: 'ACTIONS',
+        icon: Zap,
+        onSelect: () => {
+          onNavigate('providers', 'MARKETPLACE');
+          if (onAction) onAction('test-all-ping');
+        },
+      },
+    ],
+    [onNavigate, onAction]
   );
+
+  // Dynamic capability-aware search items (Blueprint Section 1.1)
+  const dynamicItems: CommandItem[] = useMemo(() => {
+    const res: CommandItem[] = [];
+
+    // Customers
+    customers.forEach((c) => {
+      res.push({
+        id: `cust-${c.id}`,
+        title: c.name,
+        subtitle: `${c.company || 'Enterprise'} · ${c.status} · ${c.email || ''}`,
+        category: 'CUSTOMERS',
+        icon: Building,
+        onSelect: () => onNavigate('crm', 'CUSTOMERS'),
+      });
+    });
+
+    // Orders
+    orders.forEach((o) => {
+      res.push({
+        id: `ord-${o.id}`,
+        title: `${o.order_number} · ${o.customer_name || 'Customer'}`,
+        subtitle: `$${o.total_amount.toFixed(2)} · ${o.status} · ${o.items.length} item(s)`,
+        category: 'ORDERS',
+        icon: ShoppingCart,
+        onSelect: () => onNavigate('oms', 'ORDERS'),
+      });
+    });
+
+    // Products / SKUs
+    products.forEach((p) => {
+      res.push({
+        id: `prod-${p.id}`,
+        title: `${p.sku} · ${p.name}`,
+        subtitle: `$${p.price.toFixed(2)} · Category: ${p.category || 'HARDWARE'}`,
+        category: 'PRODUCTS',
+        icon: Package,
+        onSelect: () => onNavigate('erp', 'INVENTORY'),
+      });
+    });
+
+    // Providers
+    providers.forEach((prov) => {
+      res.push({
+        id: `prov-${prov.id}`,
+        title: prov.name,
+        subtitle: `${prov.category} · Status: ${prov.status} · ${prov.environment}`,
+        category: 'PROVIDERS',
+        icon: Layers,
+        onSelect: () => onNavigate('providers', 'MARKETPLACE'),
+      });
+    });
+
+    return res;
+  }, [customers, orders, products, providers, onNavigate]);
+
+  const allItems = useMemo(() => [...dynamicItems, ...baseItems], [dynamicItems, baseItems]);
+
+  const filteredItems = useMemo(() => {
+    if (!query.trim()) return baseItems;
+    const q = query.toLowerCase();
+    return allItems.filter(
+      (item) =>
+        item.title.toLowerCase().includes(q) ||
+        (item.subtitle && item.subtitle.toLowerCase().includes(q)) ||
+        item.category.toLowerCase().includes(q)
+    );
+  }, [allItems, baseItems, query]);
 
   useEffect(() => {
     if (isOpen) {
@@ -156,8 +244,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
     const handleKeyDown = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'k') {
         e.preventDefault();
-        if (isOpen) onClose();
-        else onClose(); // parent handles toggle
+        onClose();
       }
       if (!isOpen) return;
 
@@ -189,7 +276,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
 
   return (
     <div
-      className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-start justify-center pt-24 px-4 animate-smooth-fade"
+      className="fixed inset-0 bg-slate-900/40 backdrop-blur-xs z-50 flex items-start justify-center pt-20 px-4 animate-smooth-fade"
       onClick={onClose}
     >
       <div
@@ -204,7 +291,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
             type="text"
             value={query}
             onChange={(e) => setQuery(e.target.value)}
-            placeholder="Type a command or search modules..."
+            placeholder="Search customers, orders, SKUs, providers, or commands..."
             className="w-full bg-transparent text-sm text-slate-900 placeholder-slate-400 focus:outline-none"
           />
           <kbd className="font-mono text-[10px] text-slate-400 bg-slate-100 border border-slate-200 px-1.5 py-0.5 rounded shrink-0">
@@ -213,10 +300,10 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Results List */}
-        <div className="max-h-80 overflow-y-auto p-2 divide-y divide-slate-50">
+        <div className="max-h-96 overflow-y-auto p-2 divide-y divide-slate-50">
           {filteredItems.length === 0 ? (
             <div className="py-8 text-center text-xs text-slate-400">
-              No matching commands found.
+              No matching records or commands found for "{query}".
             </div>
           ) : (
             filteredItems.map((item, idx) => {
@@ -237,9 +324,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                       : 'text-slate-700 hover:bg-slate-50'
                   }`}
                 >
-                  <div className="flex items-center gap-3">
+                  <div className="flex items-center gap-3 min-w-0 flex-1">
                     <span
-                      className={`p-1.5 rounded-lg ${
+                      className={`p-1.5 rounded-lg shrink-0 ${
                         isSelected
                           ? 'bg-teal-600 text-white shadow-xs'
                           : 'bg-slate-100 text-slate-500'
@@ -247,16 +334,23 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
                     >
                       <Icon className="w-3.5 h-3.5" />
                     </span>
-                    <span>{item.title}</span>
+                    <div className="min-w-0 flex-1">
+                      <div className="truncate font-medium">{item.title}</div>
+                      {item.subtitle && (
+                        <div className="text-[11px] text-slate-400 truncate mt-0.5">
+                          {item.subtitle}
+                        </div>
+                      )}
+                    </div>
                   </div>
 
-                  <div className="flex items-center gap-2">
+                  <div className="flex items-center gap-2 shrink-0 ml-2">
                     {item.shortcut && (
                       <kbd className="font-mono text-[10px] text-slate-400 bg-white border border-slate-200 px-1.5 py-0.5 rounded shadow-xs">
                         {item.shortcut}
                       </kbd>
                     )}
-                    <span className="text-[10px] uppercase font-mono text-slate-400">
+                    <span className="text-[9px] uppercase font-mono px-1.5 py-0.5 rounded bg-slate-100 text-slate-500 font-semibold">
                       {item.category}
                     </span>
                   </div>
@@ -267,9 +361,9 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         </div>
 
         {/* Footer */}
-        <div className="px-4 py-2 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-mono">
+        <div className="px-4 py-2.5 bg-slate-50 border-t border-slate-100 flex items-center justify-between text-[11px] text-slate-400 font-mono">
           <span>Navigate with ↑ ↓ and press ↵ to select</span>
-          <span>UBOP Enterprise OS</span>
+          <span>Capability-Aware Search</span>
         </div>
       </div>
     </div>

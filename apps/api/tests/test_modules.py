@@ -27,6 +27,15 @@ def test_crm_customer_flow(client):
     assert list_res.status_code == 200
     assert len(list_res.json()) >= 1
 
+    # Update Customer
+    upd_res = client.put(f"/api/v1/crm/customers/{customer_id}", json={"name": "Acme Global", "status": "ACTIVE"})
+    assert upd_res.status_code == 200
+    assert upd_res.json()["name"] == "Acme Global"
+
+    # Delete Customer
+    del_res = client.delete(f"/api/v1/crm/customers/{customer_id}")
+    assert del_res.status_code == 204
+
 
 def test_erp_product_and_inventory_flow(client):
     unique_sku = f"SKU-TEST-{int(time.time()*1000)}"
@@ -61,6 +70,15 @@ def test_erp_product_and_inventory_flow(client):
     adj_res = client.post("/api/v1/erp/inventory/adjust", json=adj_payload)
     assert adj_res.status_code == 200, adj_res.text
     assert adj_res.json()["quantity"] == 40
+
+    # Update Product
+    upd_prod_res = client.put(f"/api/v1/erp/products/{product_id}", json={"name": "Updated Server", "price": 2700.0})
+    assert upd_prod_res.status_code == 200
+    assert upd_prod_res.json()["price"] == 2700.0
+
+    # Delete Product
+    del_prod_res = client.delete(f"/api/v1/erp/products/{product_id}")
+    assert del_prod_res.status_code == 204
 
 
 def test_oms_order_lifecycle(client):
@@ -130,6 +148,16 @@ def test_workflow_engine(client):
     rules_res = client.get("/api/v1/workflow/rules")
     assert rules_res.status_code == 200
     assert len(rules_res.json()) >= 1
+    rule_id = rule["id"]
+
+    # Toggle Rule
+    patch_rule_res = client.patch(f"/api/v1/workflow/rules/{rule_id}")
+    assert patch_rule_res.status_code == 200
+    assert patch_rule_res.json()["is_active"] is False
+
+    # Delete Rule
+    del_rule_res = client.delete(f"/api/v1/workflow/rules/{rule_id}")
+    assert del_rule_res.status_code == 204
 
     # Execute workflow endpoint
     exec_res = client.post("/api/v1/workflow/execute", json={"action": "reindex"})

@@ -19,6 +19,7 @@ interface ProvidersHubViewProps {
   providers: IntegrationProvider[];
   onUpdateProvider: (updated: IntegrationProvider) => void;
   onAddCustomProvider: (newProvider: IntegrationProvider) => void;
+  activeSubNav?: string;
 }
 
 export interface BusinessCapabilityBinding {
@@ -34,6 +35,7 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
   providers,
   onUpdateProvider,
   onAddCustomProvider,
+  activeSubNav,
 }) => {
   const toast = useToast();
   const [activeCategory, setActiveCategory] = useState<string>('ALL');
@@ -46,6 +48,13 @@ export const ProvidersHubView: React.FC<ProvidersHubViewProps> = ({
   const [isWizardOpen, setIsWizardOpen] = useState(false);
   const [wizardTargetProvider, setWizardTargetProvider] = useState<IntegrationProvider | null>(null);
   const [isCustomStudioOpen, setIsCustomStudioOpen] = useState(false);
+
+  // Sync with Sidebar subnavigation
+  React.useEffect(() => {
+    if (!activeSubNav) return;
+    if (activeSubNav === 'MARKETPLACE') setIsCustomStudioOpen(false);
+    else if (activeSubNav === 'CUSTOM') setIsCustomStudioOpen(true);
+  }, [activeSubNav]);
 
   // Business Capability Bindings ("Business Capability + Provider Selection")
   const [capabilities, setCapabilities] = useState<BusinessCapabilityBinding[]>([
