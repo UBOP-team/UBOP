@@ -1,19 +1,19 @@
 # Progress Tracker
 
 Current phase:
-Modular Monolith & Enterprise Dashboard Core Completed.
+Production-Grade Enterprise Operating System & Interactive Workflows (100% Non-Mock, Industry Standard Workflows Completed).
 
 Completed:
 - Repository structure & PNPM workspace setup
 - Backend foundation (FastAPI, Async SQLAlchemy 2.0, Async EventBus, BaseRepository)
 - Provider contracts & Internal Adapters (Customer, Inventory, Payment, Notification)
 - Business Modules implemented with Models, Schemas, Repositories, Services, and REST Routers:
-  - CRM (Customers & Leads)
-  - ERP (Catalog, Warehousing & Stock Adjustments)
+  - CRM (Customers & Leads, Full CRUD, Update/Delete endpoints)
+  - ERP (Catalog, Warehousing & Stock Adjustments, SKU Update/Delete endpoints)
   - OMS (Order Lifecycle, Transitions & Event Publishing)
   - BI (KPIs, Gross Revenue & Sales Growth Trend)
-  - Workflow (Automation Engine, Event Listeners & Audit Logs)
-- Full Backend Test Suite (100% pass with Pytest, Ruff linting & Bandit SAST clean)
+  - Workflow (Automation Engine, Event Listeners, Rule Toggle & Delete endpoints, Audit Logs)
+- Full Backend Test Suite (100% pass with Pytest, 14/14 tests green, Ruff linting & Bandit SAST clean)
 - Frontend Enterprise Dashboard (React 19, TypeScript, Tailwind CSS, Vite)
   - Sidebar & Top Header Navigation
   - Executive BI Dashboard with KPI Cards & Charts
@@ -40,6 +40,70 @@ Completed:
   - Phase 2: Design System Core Components & Enterprise UX States (`UXStates.tsx`, `ConfigPanel.tsx` with light enterprise styling)
   - Phase 3: Information Architecture & Sidebar Navigation matching Section 2 (`Command Center`, `Business Modules`, `Integrations`, `Administration`) + dedicated `BiView.tsx` with multi-dimensional analytics
   - Phase 4: 5-Tab Module UX Standardization (`Overview`, `Workspace`, `Configuration`, `Provider Settings`, `Analytics`) across CRM, OMS, ERP, Workflow & BI + live ping wire-up
-  - Verification: 14/14 Pytest tests passing (100%), TypeScript & Vite production build clean with 0 errors
-- Git Branching Policy: Work conducted on dedicated feature branches (`feat/enterprise-os-standardization`) rather than directly committing to `main`
-- Git Remote: Pushed to https://github.com/huynguyen2k5/UBOP.git with Conventional Commits
+- Phase 5: Zero-Mock & Real Enterprise Workflow Implementation ("Không làm để trưng"):
+  - **Global Header & Notification Center**: Live notification popover/drawer with unread badge counter, Mark All Read, Clear All, and tab-level quick jump. Interactive role switcher (Admin, Ops Manager, Finance, Auditor).
+  - **Command Palette (`⌘K`)**: Wired live action dispatchers opening target creation modals directly from search.
+  - **CRM (Salesforce / HubSpot)**: Full customer CRUD (Edit modal, Delete confirmation). Dynamic pipeline opportunity stages (`DISCOVERY` to `CLOSED_WON`), weighted pipeline computation, real touchpoint activity logging (`CALL`, `EMAIL`, `NOTE`, `MEETING`), document vault simulation, and real CSV exports (`ubop_crm_customers_*.csv`).
+  - **OMS (Shopify / Amazon)**: Dynamic multi-line order ingestion modal with live subtotal/tax/shipping calculator. Carrier tracking dispatch modal (`FedEx`, `UPS`, `DHL`, `USPS`) with tracking number copy. Order cancellation workflow with reason code and automatic inventory restoration. Printable commercial invoice / packing slip modal (`window.print()`), and real CSV exports (`ubop_oms_orders_*.csv`).
+  - **ERP (SAP Fiori / NetSuite)**: Full SKU lifecycle (Edit SKU, Delete SKU confirmation). Multi-warehouse stock transfer modal (`MAIN` -> `NORTH` -> `DIGITAL`) with inventory validation. Physical inventory movement audit trail tracking deltas, reason codes, and operators. General ledger voucher posting modal with debit/credit balancing, and real CSV exports (`ubop_erp_catalog_*.csv`, `ubop_inventory_movements_*.csv`, `ubop_erp_ledger_*.csv`).
+  - **BI & Telemetry (Power BI / Stripe)**: Interactive Workspace Query Builder executing real cross-joins between orders, customers, and inventory with grouped aggregations and real CSV telemetry exports (`ubop_analytics_telemetry_*.csv`). Real data warehouse sync simulator.
+  - **Workflow Engine (ServiceNow / Zapier)**: Visual flow canvas with "+ Insert Step" and step deletion. Node Inspector with live state persistence ("Save Step"). Automation rules table with active/pause toggle switch and rule deletion. Interactive pipeline simulator modal with execution trace, and real CSV log exports (`ubop_workflow_logs_*.csv`).
+- Phase 6: Blueprint Interaction Models & UX Patterns Alignment (`UBOP-module-clone-ux-workflow-blueprint.md`):
+  - **Unified Shell & Top Bar**:
+    - Interactive Workspace Switcher dropdown (`Apex Global US-Production`, `Apex Europe EU-Staging`, `Sandbox / Local Dev`).
+    - Live Provider Sync status indicator pill (`● Sync: Healthy · 8 Connected`) with one-click jump to Integrations.
+    - Capability-Aware Global Search in Command Palette categorizing across Customers, Orders, Products, Providers, Actions, and Navigation.
+    - Hierarchical Left Navigation expandable sub-nav tree synchronized bidirectionally with module subtabs.
+  - **CRM (Salesforce Lightning Pattern - Blueprint Section 3)**:
+    - Resource Index: First-class saved view pills (`[ All Customers ] [ Active Enterprise ] [ Leads / Prospects ] [ Strategic Accounts ]`).
+    - Multi-row selection checkboxes (`☐`) + floating bulk action bar (`[ X selected ] [ Export Selected CSV ] [ Mark as Active ] [ Clear Selection ]`).
+    - Customer 360 Record Provenance Banner: Prominent source system provenance banner (`Provider: Salesforce Lightning / Internal CRM · Sync: Healthy · External ID: SF-00000X`).
+    - Subnavigation synchronization for Overview, Customers, Opportunities, and Activities.
+  - **OMS (Shopify Admin Pattern - Blueprint Section 4)**:
+    - Resource Index: First-class saved view pills (`[ All Orders ] [ Unfulfilled / Pending ] [ Confirmed & Picking ] [ Shipped / In-Transit ] [ Cancelled & Returns ]`).
+    - Multi-row selection checkboxes (`☐`) + floating bulk action bar (`[ X selected ] [ Allocate & Confirm ] [ Dispatch via Carrier ] [ Export Selected CSV ] [ Clear Selection ]`).
+    - Order Detail Provenance Banner: Prominent source system provenance banner (`Provider: Shopify Storefront Connector · Sync: Real-time Webhook (Healthy) · External ID: SH-00000X`).
+    - Subnavigation synchronization for Overview, Orders Index, Fulfillment & Carrier, Returns & Refunds.
+  - **ERP (SAP Fiori Pattern - Blueprint Section 5)**:
+    - Resource Index: First-class saved view pills (`[ All Catalog SKUs ] [ Low Stock Alerts ] [ Hardware (MAIN DC) ] [ Digital / Software Licenses ]`).
+    - Multi-row selection checkboxes (`☐`) + floating bulk action bar (`[ X selected ] [ Transfer to NORTH Annex ] [ Export Selected CSV ] [ Clear Selection ]`).
+    - Subnavigation synchronization for Overview, Inventory & SKUs, Movement Audit Trail, General Ledger.
+  - **BI & Telemetry (Power BI Pattern - Blueprint Section 6)**:
+    - Subnavigation synchronization for Dashboard Reader (`OVERVIEW`), Query Workspace (`WORKSPACE`), and Engine Telemetry (`ANALYTICS`).
+  - **Automation Engine (ServiceNow Flow Designer Pattern - Blueprint Section 7)**:
+    - Subnavigation synchronization for Flow Canvas (`FLOW_CANVAS`), Rules Registry (`RULES_TABLE`), and Run History (`ANALYTICS`).
+  - **Integrations & Connectors (Power Platform Pattern - Blueprint Section 8)**:
+    - Subnavigation synchronization for Provider Hub Marketplace (`MARKETPLACE`) and Custom Studio (`CUSTOM`).
+- Phase 7: Module 01 CRM — Salesforce Lightning UX & Workflow Implementation (`01-crm-salesforce-ux-workflow-implementation-prompt.md`):
+  - **CRM-01 Domain & API Foundation**:
+    - Canonical SQLAlchemy models: `Lead`, `Account`, `Contact`, `Opportunity`, `OpportunityContactRole`, `Activity` + backwards-compatible `Customer`.
+    - Pydantic validation schemas with stage gating and conversion parameters.
+    - Specialized repositories (`LeadRepository`, `AccountRepository`, `ContactRepository`, `OpportunityRepository`, `OpportunityContactRoleRepository`, `ActivityRepository`).
+    - Service layer with transactional lead conversion, automated audit trail activity generation, and EventBus publications (`crm.lead_converted`, `crm.opportunity_won`).
+    - Full REST endpoints under `/api/v1/crm/*`.
+  - **CRM-02 Leads Management**:
+    - Universal index table with saved view pills (`All Open Leads`, `New Inbound`, `Qualified`, `Converted`).
+    - Salesforce-style Highlights Panel, Status Path (`NEW` → `CONTACTED` → `QUALIFYING` → `QUALIFIED` → `CONVERTED`), and Activity Timeline composer.
+  - **CRM-03 Lead Conversion Workflow**:
+    - 4-step transactional `LeadConversionWizard` (Account creation/link with duplicate detection, Contact creation as Decision Maker, Opportunity creation with pipeline stage & close date, Review summary).
+  - **CRM-04 Accounts & Contacts (Customer 360)**:
+    - Customer 360 Account page with commercial summary, related Contacts list, related Opportunities table, and activity timeline.
+    - Contacts directory with primary decision maker badge and individual contact detail workspace.
+  - **CRM-05 Opportunities Sales Lifecycle**:
+    - Dynamic Stage Path (`PROSPECTING` → `QUALIFICATION` → `DISCOVERY` → `PROPOSAL` → `NEGOTIATION` → `CLOSED_WON` / `CLOSED_LOST`).
+    - Explicit Closed Won dialog and Closed Lost modal with mandatory loss reason.
+  - **CRM-06 Opportunity Kanban**:
+    - Table / Kanban view switcher with aggregated amounts and counts per stage column.
+    - HTML5 Drag and Drop card transitions + accessible select dropdown alternative.
+  - **CRM-07 Sales Command Overview**:
+    - Actionable KPI cards (Pipeline Value, Open Opportunities, New Leads, Pending Tasks) with click-to-filter navigation.
+    - Pipeline stage funnel with interactive filter jump.
+    - My Action Queue for urgent/overdue deals and follow-ups.
+  - **CRM-08 Provider & Sync UX**:
+    - Source system provenance pill (`Provider: Salesforce / Canonical · Sync: Healthy · External ID`).
+    - Non-blocking provider sync state separation from commercial business stage.
+- Verification:
+  - Backend: 16/16 Pytest tests passing (100% green, including `test_crm_salesforce.py`).
+  - Frontend: `tsc -b && vite build` 100% clean (0 errors, 1919 modules transformed).
+  - Browser E2E: Full video recording (`crm_lightning_ux_demo`) verifying Lead record, 4-step Conversion Wizard execution, and Opportunity creation.
+
