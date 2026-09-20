@@ -684,3 +684,221 @@ export interface ErpOverviewMetrics {
   transfers_in_transit: number;
 }
 
+// ==========================================
+// CANONICAL BI DOMAIN TYPES (POWER BI REFERENCE)
+// ==========================================
+
+export type VisualType = 'KPI' | 'LINE' | 'BAR' | 'COLUMN' | 'AREA' | 'TABLE' | 'MATRIX' | 'DONUT' | 'FUNNEL';
+
+export interface VisualConfig {
+  measures?: string[];
+  dimensions?: string[];
+  sort_by?: string;
+  sort_direction?: 'ASC' | 'DESC';
+  format?: 'CURRENCY' | 'INTEGER' | 'PERCENTAGE' | 'DECIMAL' | 'STRING';
+  colors?: string[];
+  chart_subtitle?: string;
+  show_legend?: boolean;
+  comparison_enabled?: boolean;
+  comparison_target?: number;
+  comparison_text?: string;
+  drill_enabled?: boolean;
+  drill_hierarchy?: string[];
+  operational_link_type?: 'CRM_ACCOUNT' | 'OMS_ORDER' | 'ERP_ITEM' | string;
+  source_report_id?: string;
+  page_id?: string;
+  value?: string;
+  change?: string;
+  subtext?: string;
+}
+
+export interface VisualInteractionConfig {
+  target_mode: 'FILTER' | 'HIGHLIGHT' | 'NONE';
+  drillthrough_page_id?: string;
+}
+
+export interface ReportVisual {
+  id: string;
+  report_page_id: string;
+  visual_type: VisualType;
+  title: string;
+  configuration: VisualConfig;
+  position: {
+    col_span: number;
+    row_span: number;
+    x?: number;
+    y?: number;
+  };
+  interaction_config: VisualInteractionConfig;
+}
+
+export interface ReportPage {
+  id: string;
+  report_id: string;
+  name: string;
+  order_index: number;
+  page_question?: string;
+  layout: {
+    columns?: number;
+    spacing?: string;
+  };
+  default_filter_state: AnalyticalFilter[];
+  visuals: ReportVisual[];
+}
+
+export interface Report {
+  id: string;
+  organization_id: string;
+  semantic_model_id: string;
+  name: string;
+  description?: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'ARCHIVED';
+  owner_id: string;
+  default_page_id?: string;
+  created_at: string;
+  updated_at: string;
+  published_at?: string;
+  pages: ReportPage[];
+}
+
+export interface DashboardTile {
+  id: string;
+  dashboard_id: string;
+  title: string;
+  tile_type: 'METRIC_CARD' | 'REPORT_VISUAL' | 'SAVED_QUERY';
+  source_ref_id?: string;
+  configuration: VisualConfig;
+  position: {
+    col_span: number;
+    row_span: number;
+  };
+}
+
+export interface Dashboard {
+  id: string;
+  organization_id: string;
+  name: string;
+  description?: string;
+  is_executive: boolean;
+  owner_id: string;
+  last_refreshed_at: string;
+  created_at: string;
+  updated_at: string;
+  tiles: DashboardTile[];
+}
+
+export interface SemanticField {
+  id: string;
+  semantic_entity_id: string;
+  name: string;
+  display_name: string;
+  data_type: 'STRING' | 'NUMBER' | 'DATE' | 'BOOLEAN';
+  field_type: 'DIMENSION' | 'MEASURE' | 'DATE' | 'IDENTIFIER';
+  aggregation_default: 'SUM' | 'AVG' | 'COUNT' | 'MIN' | 'MAX' | 'NONE';
+  format_type: 'CURRENCY' | 'PERCENTAGE' | 'INTEGER' | 'DECIMAL' | 'DATE' | 'STRING';
+  is_hidden: boolean;
+}
+
+export interface SemanticEntity {
+  id: string;
+  semantic_model_id: string;
+  name: string;
+  display_name: string;
+  source_table: string;
+  description?: string;
+  fields: SemanticField[];
+}
+
+export interface MetricDefinition {
+  id: string;
+  semantic_model_id: string;
+  name: string;
+  display_name: string;
+  description?: string;
+  expression: string;
+  format_type: 'CURRENCY' | 'PERCENTAGE' | 'INTEGER' | 'DECIMAL' | 'STRING';
+  unit: string;
+  lineage_source: string;
+  used_in_reports_count?: number;
+}
+
+export interface SemanticModel {
+  id: string;
+  organization_id: string;
+  name: string;
+  description?: string;
+  status: 'DRAFT' | 'ACTIVE' | 'DEPRECATED';
+  owner_id: string;
+  source_type: 'OMS' | 'CRM' | 'ERP' | 'COMPOSITE';
+  refresh_mode: 'SCHEDULED' | 'MANUAL' | 'EVENT_DRIVEN';
+  last_refresh_at?: string;
+  last_successful_refresh_at?: string;
+  refresh_status: 'NEVER_RUN' | 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'STALE';
+  created_at: string;
+  updated_at: string;
+  entities_count?: number;
+  measures_count?: number;
+  entities?: SemanticEntity[];
+  metrics?: MetricDefinition[];
+}
+
+export interface AnalyticalFilter {
+  field: string;
+  operator: 'EQUALS' | 'NOT_EQUALS' | 'IN' | 'NOT_IN' | 'BETWEEN' | 'CONTAINS';
+  values: any[];
+  scope: 'VISUAL' | 'PAGE' | 'REPORT' | 'DRILLTHROUGH';
+  display_label?: string;
+}
+
+export interface AnalyticalBookmark {
+  id: string;
+  report_id: string;
+  user_id: string;
+  name: string;
+  is_default: boolean;
+  state: {
+    active_page_id?: string;
+    slicers?: Record<string, any>;
+    filters?: AnalyticalFilter[];
+  };
+  created_at: string;
+}
+
+export interface RefreshRun {
+  id: string;
+  semantic_model_id: string;
+  semantic_model_name?: string;
+  status: 'QUEUED' | 'RUNNING' | 'SUCCEEDED' | 'FAILED' | 'STALE';
+  triggered_by: 'EVENT' | 'MANUAL' | 'SCHEDULE' | string;
+  duration_ms: number;
+  rows_processed: number;
+  error_message?: string;
+  started_at: string;
+  finished_at: string;
+}
+
+export interface BIContentCard {
+  id: string;
+  title: string;
+  type: 'DASHBOARD' | 'REPORT' | 'METRIC' | 'MODEL';
+  description?: string;
+  last_modified: string;
+  author: string;
+  is_favorite?: boolean;
+  status?: string;
+}
+
+export interface BIHomeSummary {
+  favorites: BIContentCard[];
+  recents: BIContentCard[];
+  shared_with_me: BIContentCard[];
+  data_health: {
+    total_models: number;
+    healthy_count: number;
+    stale_count: number;
+    recent_runs: RefreshRun[];
+    last_synced_at: string;
+  };
+}
+
+
