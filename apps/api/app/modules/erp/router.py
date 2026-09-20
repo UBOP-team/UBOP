@@ -2,7 +2,7 @@ from typing import List
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.database import get_db
-from .schemas import ProductCreate, ProductResponse, InventoryItemResponse, StockAdjustment
+from .schemas import ProductCreate, ProductUpdate, ProductResponse, InventoryItemResponse, StockAdjustment
 from .repository import ProductRepository, InventoryRepository
 from .service import InventoryService
 
@@ -44,6 +44,29 @@ async def get_product(
     if not product:
         raise HTTPException(status_code=404, detail="Product not found")
     return product
+
+
+@router.put("/products/{product_id}", response_model=ProductResponse)
+async def update_product(
+    product_id: int,
+    product_in: ProductUpdate,
+    service: InventoryService = Depends(get_inventory_service),
+):
+    updated = await service.update_product(product_id, product_in)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return updated
+
+
+@router.delete("/products/{product_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_product(
+    product_id: int,
+    service: InventoryService = Depends(get_inventory_service),
+):
+    success = await service.delete_product(product_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Product not found")
+    return None
 
 
 @router.get("/inventory", response_model=List[InventoryItemResponse])

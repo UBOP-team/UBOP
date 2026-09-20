@@ -45,6 +45,20 @@ class WorkflowEngine:
             return []
         return await self.rule_repo.get_all()
 
+    async def toggle_rule(self, rule_id: int, is_active: Optional[bool] = None) -> Optional[WorkflowRule]:
+        if not self.rule_repo:
+            return None
+        rule = await self.rule_repo.get_by_id(rule_id)
+        if not rule:
+            return None
+        new_active = is_active if is_active is not None else not rule.is_active
+        return await self.rule_repo.update(rule_id, is_active=new_active)
+
+    async def delete_rule(self, rule_id: int) -> bool:
+        if not self.rule_repo:
+            return False
+        return await self.rule_repo.delete(rule_id)
+
     async def list_logs(self, limit: int = 50) -> List[WorkflowLog]:
         if not self.log_repo:
             return []

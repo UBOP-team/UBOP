@@ -46,6 +46,17 @@ class InventoryService(InventoryProvider):
             return None
         return await self.product_repo.get_by_id(product_id)
 
+    async def update_product(self, product_id: int, data: Any) -> Optional[Product]:
+        if not self.product_repo:
+            return None
+        dump = data.model_dump(exclude_unset=True) if hasattr(data, "model_dump") else data
+        return await self.product_repo.update(product_id, **dump)
+
+    async def delete_product(self, product_id: int) -> bool:
+        if not self.product_repo:
+            return False
+        return await self.product_repo.delete(product_id)
+
     async def list_inventory(self, skip: int = 0, limit: int = 100) -> List[InventoryItem]:
         if not self.inventory_repo:
             return []

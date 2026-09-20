@@ -33,6 +33,28 @@ async def list_rules(
     return await engine.list_rules()
 
 
+@router.patch("/rules/{rule_id}", response_model=WorkflowRuleResponse)
+async def toggle_rule(
+    rule_id: int,
+    engine: WorkflowEngine = Depends(get_workflow_engine),
+):
+    updated = await engine.toggle_rule(rule_id)
+    if not updated:
+        raise HTTPException(status_code=404, detail="Rule not found")
+    return updated
+
+
+@router.delete("/rules/{rule_id}", status_code=status.HTTP_204_NO_CONTENT)
+async def delete_rule(
+    rule_id: int,
+    engine: WorkflowEngine = Depends(get_workflow_engine),
+):
+    success = await engine.delete_rule(rule_id)
+    if not success:
+        raise HTTPException(status_code=404, detail="Rule not found")
+    return None
+
+
 @router.get("/logs", response_model=List[WorkflowLogResponse])
 async def list_logs(
     limit: int = 50,
