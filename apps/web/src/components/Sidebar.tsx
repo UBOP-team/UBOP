@@ -103,12 +103,15 @@ export const Sidebar: React.FC<SidebarProps> = ({
     },
     {
       id: 'bi',
-      label: 'BI & Telemetry',
+      label: 'BI & Analytics',
       icon: BarChart3,
       children: [
-        { id: 'OVERVIEW', label: 'Dashboard Reader' },
-        { id: 'WORKSPACE', label: 'Query Workspace' },
-        { id: 'ANALYTICS', label: 'Engine Telemetry' },
+        { id: 'HOME', label: 'BI Home' },
+        { id: 'DASHBOARDS', label: 'Dashboards' },
+        { id: 'REPORTS', label: 'Reports' },
+        { id: 'METRICS', label: 'Metrics Catalog' },
+        { id: 'MODELS', label: 'Semantic Models' },
+        { id: 'REFRESH', label: 'Data Refresh' },
       ],
     },
     {
