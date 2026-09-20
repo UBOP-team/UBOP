@@ -16,6 +16,7 @@ interface FlowListProps {
   onSelectFlow: (flowId: string) => void;
   onCreateFlow: (newFlow: { name: string; description: string; category: string }) => Promise<void>;
   onRunTest: (flowId: string) => void;
+  onRunLive?: (flowId: string) => void;
   onToggleStatus: (flowId: string, currentStatus: string) => Promise<void>;
 }
 
@@ -24,6 +25,7 @@ export const FlowList: React.FC<FlowListProps> = ({
   onSelectFlow,
   onCreateFlow,
   onRunTest,
+  onRunLive,
   onToggleStatus,
 }) => {
   const [activeView, setActiveView] = useState<'ALL' | 'ACTIVE' | 'DRAFT' | 'FAILED_RECENTLY' | 'INACTIVE'>('ALL');
@@ -281,6 +283,16 @@ export const FlowList: React.FC<FlowListProps> = ({
 
                     <td className="py-3.5 px-4 text-right">
                       <div className="flex items-center justify-end gap-1.5" onClick={(e) => e.stopPropagation()}>
+                        {onRunLive && f.status === 'ACTIVE' && (
+                          <button
+                            onClick={() => onRunLive(f.id)}
+                            className="p-1.5 rounded-lg text-purple-400 hover:text-purple-300 hover:bg-purple-950/40 transition-colors"
+                            title="Trigger Live Flow Run"
+                          >
+                            <Zap className="w-3.5 h-3.5" />
+                          </button>
+                        )}
+
                         <button
                           onClick={() => onRunTest(f.id)}
                           className="p-1.5 rounded-lg text-slate-400 hover:text-emerald-400 hover:bg-slate-800 transition-colors"

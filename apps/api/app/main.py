@@ -17,6 +17,9 @@ from app.providers.router import router as providers_router
 async def lifespan(app: FastAPI):
     # Initialize database tables
     await init_db()
+    # Subscribe Workflow Automation Engine to cross-module domain events
+    from app.modules.workflow.service import setup_workflow_event_listeners
+    setup_workflow_event_listeners()
     yield
     # Cleanup if needed
 

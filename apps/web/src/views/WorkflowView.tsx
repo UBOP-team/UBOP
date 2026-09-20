@@ -207,6 +207,59 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
     }
   };
 
+  const handleRunLiveFlow = async (flowId: string, customPayload?: any) => {
+    try {
+      const targetFlow = flows.find((f) => f.id === flowId);
+      const payload = customPayload || (
+        targetFlow?.active_version?.trigger_definition?.event_name?.includes('Inventory')
+          ? { material_id: 'MAT-SRV-01', plant: 'PL01', available_qty: 8, material_name: 'Dell Server Blade' }
+          : {
+              order: {
+                id: 'ORD-20391',
+                order_number: 'ORD-20391',
+                total: 85000000,
+                channel: 'B2B',
+                customer_name: 'Vinamilk Megacorp',
+                owner_email: 'sales@ubop.vn',
+              },
+            }
+      );
+
+      const res = await fetch(`/api/v1/workflow/flows/${flowId}/run`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          trigger_type: targetFlow?.active_version?.trigger_definition?.trigger_type || 'DOMAIN_EVENT',
+          payload,
+        }),
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.detail || 'Live execution failed');
+      }
+      const liveRun: FlowRun = await res.json();
+      setRuns((prev) => [liveRun, ...prev]);
+      setInspectedRun(liveRun);
+
+      // Refresh runs and approvals so counts and inbox reflect real changes immediately
+      fetchAllData();
+
+      if (liveRun.status === 'WAITING') {
+        toast.info(
+          'Flow Waiting for Approval',
+          'Approval step triggered. Navigate to the Approvals inbox tab to review and resume this run.'
+        );
+      } else if (liveRun.status === 'SUCCEEDED') {
+        toast.success('Live Run Completed', `Executed ${liveRun.step_runs?.length || 0} steps successfully.`);
+      } else {
+        toast.error('Live Run', `Execution concluded with status: ${liveRun.status}`);
+      }
+    } catch (err: any) {
+      toast.error('Run Live Failed', err.message);
+    }
+  };
+
   const handleUseTemplate = async (template: FlowTemplate) => {
     try {
       const payload = {
@@ -277,7 +330,19 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
       if (!res.ok) throw new Error('Decision failed');
       const updated: ApprovalRequest = await res.json();
       setApprovals((prev) => prev.map((a) => (a.id === updated.id ? updated : a)));
-      toast.success('Approval Recorded', `Decision: ${decision}. Associated flow run will resume.`);
+
+      // Refresh runs and flows so the resumed run is shown in real time
+      const runsRes = await fetch('/api/v1/workflow/runs');
+      if (runsRes.ok) {
+        const runsData = await runsRes.json();
+        setRuns(runsData);
+        if (updated.flow_run_id) {
+          const resumed = runsData.find((r: FlowRun) => r.id === updated.flow_run_id);
+          if (resumed) setInspectedRun(resumed);
+        }
+      }
+
+      toast.success('Approval Recorded', `Decision: ${decision}. Associated flow run resumed.`);
     } catch (err: any) {
       toast.error('Error', err.message);
     }
@@ -295,6 +360,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
           onSelectFlow={handleSelectFlow}
           onCreateFlow={handleCreateFlow}
           onRunTest={(flowId) => handleRunTest(flowId)}
+          onRunLive={handleRunLiveFlow}
           onToggleStatus={handleToggleStatus}
         />
       )}
@@ -308,6 +374,7 @@ export const WorkflowView: React.FC<WorkflowViewProps> = ({
           onSaveDraft={handleSaveDraft}
           onActivate={handleActivateFlow}
           onRunTest={handleRunTest}
+          onRunLive={handleRunLiveFlow}
         />
       )}
 

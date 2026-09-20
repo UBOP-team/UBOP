@@ -1,3 +1,6 @@
+import pytest
+
+
 def test_actions_and_subflows_catalog(client):
     # 1. Test Action Catalog
     res = client.get("/api/v1/workflow/actions")
@@ -193,3 +196,76 @@ def test_legacy_rules_and_logs(client):
     logs_res = client.get("/api/v1/workflow/logs")
     assert logs_res.status_code == 200
     assert isinstance(logs_res.json(), list)
+
+
+def test_live_workflow_execution_and_resumption(client):
+    # 1. Run live flow on large order (> 50M VND)
+    run_payload = {
+        "order": {
+            "id": "ORD-LIVE-999",
+            "order_number": "ORD-LIVE-999",
+            "total_amount": 95000000.0,
+            "customer_name": "Techcombank Enterprise",
+            "owner_email": "quang.le@ubop.vn",
+        }
+    }
+    res = client.post("/api/v1/workflow/flows/flow_large_order_approval/run", json=run_payload)
+    assert res.status_code == 200, res.text
+    run_data = res.json()
+    assert run_data["id"].startswith("run_")
+    assert run_data["status"] == "WAITING"
+    run_id = run_data["id"]
+
+    # 2. Check that pending approval request was created
+    apprs_res = client.get("/api/v1/workflow/approvals?status=PENDING")
+    assert apprs_res.status_code == 200
+    apprs = apprs_res.json()
+    my_appr = next((a for a in apprs if a["flow_run_id"] == run_id), None)
+    assert my_appr is not None
+    assert my_appr["approver_reference"] == "OPERATIONS_MANAGER"
+    assert my_appr["status"] == "PENDING"
+    appr_id = my_appr["id"]
+
+    # 3. Approve the request
+    dec_res = client.post(
+        f"/api/v1/workflow/approvals/{appr_id}/decide",
+        json={"decision": "APPROVED", "comment": "Approved live enterprise transaction."},
+    )
+    assert dec_res.status_code == 200
+    assert dec_res.json()["status"] == "APPROVED"
+
+    # 4. Verify that flow run resumed and completed with SUCCEEDED!
+    run_check = client.get(f"/api/v1/workflow/runs/{run_id}")
+    assert run_check.status_code == 200
+    resumed_run = run_check.json()
+    assert resumed_run["status"] == "SUCCEEDED"
+    assert resumed_run["completed_at"] is not None
+    step_keys = [s["step_key"] for s in resumed_run["step_runs"]]
+    assert "step_tag_vip" in step_keys
+    assert "step_notify_owner" in step_keys
+
+
+@pytest.mark.anyio
+async def test_domain_event_triggers_flow_run(client):
+    from app.core.events import event_bus
+    from app.modules.oms.service import OrderCreatedEvent
+
+    # Publish domain event for high-value order (> 50M VND)
+    order_event = OrderCreatedEvent(
+        order_id=9876,
+        order_number="ORD-AUTO-9876",
+        customer_id=101,
+        total_amount=65000000.0,
+        items=[{"product_id": 1, "quantity": 5, "unit_price": 13000000.0}],
+    )
+    await event_bus.publish(order_event)
+
+    # Verify workflow engine reacted and created a flow run
+    res = client.get("/api/v1/workflow/runs")
+    assert res.status_code == 200
+    runs = res.json()
+    triggered_run = next((r for r in runs if "ORD-AUTO-9876" in (r.get("trigger_reference") or "")), None)
+    assert triggered_run is not None
+    assert triggered_run["status"] in ("WAITING", "SUCCEEDED")
+
+

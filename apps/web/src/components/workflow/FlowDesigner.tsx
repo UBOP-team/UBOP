@@ -38,6 +38,7 @@ interface FlowDesignerProps {
   onSaveDraft: (updatedFlow: Partial<FlowDefinition>) => Promise<void>;
   onActivate: (flowId: string) => Promise<void>;
   onRunTest: (flowId: string, payload: any) => Promise<void>;
+  onRunLive?: (flowId: string, payload?: any) => Promise<void>;
 }
 
 export const FlowDesigner: React.FC<FlowDesignerProps> = ({
@@ -48,6 +49,7 @@ export const FlowDesigner: React.FC<FlowDesignerProps> = ({
   onSaveDraft,
   onActivate,
   onRunTest,
+  onRunLive,
 }) => {
   const toast = useToast();
 
@@ -80,8 +82,9 @@ export const FlowDesigner: React.FC<FlowDesignerProps> = ({
   // Data Pill Picker State
   const [activePillTarget, setActivePillTarget] = useState<{ stepKey: string; fieldName: string } | null>(null);
 
-  // Test Modal State
+  // Test & Live Run Modal State
   const [isTestModalOpen, setIsTestModalOpen] = useState(false);
+  const [runMode, setRunMode] = useState<'TEST' | 'LIVE'>('TEST');
   const [testPayloadStr, setTestPayloadStr] = useState(
     JSON.stringify(
       trigger.trigger_type === 'DOMAIN_EVENT' && trigger.event_name?.includes('Inventory')
@@ -281,17 +284,21 @@ export const FlowDesigner: React.FC<FlowDesignerProps> = ({
     }
   };
 
-  const handleRunTestModalSubmit = async () => {
+  const handleRunModalSubmit = async () => {
     let parsedPayload = {};
     try {
       parsedPayload = JSON.parse(testPayloadStr);
     } catch {
-      toast.error('Invalid JSON', 'Test payload must be valid JSON.');
+      toast.error('Invalid JSON', 'Trigger payload must be valid JSON.');
       return;
     }
 
     setIsTestModalOpen(false);
-    await onRunTest(flow.id, parsedPayload);
+    if (runMode === 'LIVE' && onRunLive) {
+      await onRunLive(flow.id, parsedPayload);
+    } else {
+      await onRunTest(flow.id, parsedPayload);
+    }
   };
 
   return (
@@ -360,11 +367,27 @@ export const FlowDesigner: React.FC<FlowDesignerProps> = ({
           </button>
 
           <button
-            onClick={() => setIsTestModalOpen(true)}
+            onClick={() => {
+              setRunMode('TEST');
+              setIsTestModalOpen(true);
+            }}
             className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-medium text-slate-300 bg-slate-800 hover:bg-slate-700 transition-colors"
           >
             <Play className="w-4 h-4 text-emerald-400" /> Test
           </button>
+
+          {onRunLive && flow.status === 'ACTIVE' && (
+            <button
+              onClick={() => {
+                setRunMode('LIVE');
+                setIsTestModalOpen(true);
+              }}
+              className="flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-xs font-semibold text-purple-200 bg-purple-950/60 hover:bg-purple-900/80 border border-purple-500/30 transition-colors shadow-sm"
+              title="Run Live Flow with Real Side Effects"
+            >
+              <Zap className="w-4 h-4 text-purple-400" /> Run Live
+            </button>
+          )}
 
           <button
             onClick={handleSave}
@@ -1049,12 +1072,24 @@ export const FlowDesigner: React.FC<FlowDesignerProps> = ({
           <div className="relative w-full max-w-lg rounded-2xl bg-slate-900 border border-slate-700 shadow-2xl p-6 space-y-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-2.5">
-                <div className="p-2 rounded-lg bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                  <Play className="w-5 h-5" />
+                <div
+                  className={`p-2 rounded-lg border ${
+                    runMode === 'LIVE'
+                      ? 'bg-purple-500/10 text-purple-400 border-purple-500/20'
+                      : 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20'
+                  }`}
+                >
+                  {runMode === 'LIVE' ? <Zap className="w-5 h-5" /> : <Play className="w-5 h-5" />}
                 </div>
                 <div>
-                  <h3 className="text-sm font-bold text-white">Test Flow Execution</h3>
-                  <p className="text-xs text-slate-400">Sandbox test run before publication</p>
+                  <h3 className="text-sm font-bold text-white">
+                    {runMode === 'LIVE' ? 'Execute Live Flow Run' : 'Test Flow Execution'}
+                  </h3>
+                  <p className="text-xs text-slate-400">
+                    {runMode === 'LIVE'
+                      ? 'Live execution dispatches real domain events, pauses at approvals, and mutates system data'
+                      : 'Sandbox test run before publication'}
+                  </p>
                 </div>
               </div>
               <button
@@ -1067,7 +1102,7 @@ export const FlowDesigner: React.FC<FlowDesignerProps> = ({
 
             <div>
               <label className="block text-xs font-semibold text-slate-300 mb-1.5">
-                Trigger Payload Simulation (JSON)
+                Trigger Payload {runMode === 'LIVE' ? '(Live)' : 'Simulation'} (JSON)
               </label>
               <textarea
                 value={testPayloadStr}
@@ -1077,8 +1112,23 @@ export const FlowDesigner: React.FC<FlowDesignerProps> = ({
               />
             </div>
 
-            <div className="p-3 rounded-xl bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs">
-              <strong>Sandbox Guard:</strong> Flow will execute in guarded diagnostic mode. Step timings and resolved data references will be recorded in execution details.
+            <div
+              className={`p-3 rounded-xl border text-xs ${
+                runMode === 'LIVE'
+                  ? 'bg-purple-500/10 border-purple-500/20 text-purple-300'
+                  : 'bg-amber-500/10 border-amber-500/20 text-amber-300'
+              }`}
+            >
+              {runMode === 'LIVE' ? (
+                <>
+                  <strong>Live Execution Guard:</strong> If this flow reaches an Approval step, it will pause in{' '}
+                  <code className="px-1 py-0.5 rounded bg-purple-950/80 text-purple-200">WAITING</code> status and generate a real item in your Approvals inbox. Subsequent actions execute when approved.
+                </>
+              ) : (
+                <>
+                  <strong>Sandbox Guard:</strong> Flow will execute in guarded diagnostic mode. Step timings and resolved data references will be recorded in execution details.
+                </>
+              )}
             </div>
 
             <div className="flex items-center justify-end gap-2 pt-2">
@@ -1089,10 +1139,22 @@ export const FlowDesigner: React.FC<FlowDesignerProps> = ({
                 Cancel
               </button>
               <button
-                onClick={handleRunTestModalSubmit}
-                className="flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white bg-indigo-600 hover:bg-indigo-500 rounded-lg shadow-md"
+                onClick={handleRunModalSubmit}
+                className={`flex items-center gap-1.5 px-4 py-1.5 text-xs font-semibold text-white rounded-lg shadow-md transition-colors ${
+                  runMode === 'LIVE'
+                    ? 'bg-purple-600 hover:bg-purple-500'
+                    : 'bg-indigo-600 hover:bg-indigo-500'
+                }`}
               >
-                <Play className="w-3.5 h-3.5" /> Execute Test Run
+                {runMode === 'LIVE' ? (
+                  <>
+                    <Zap className="w-3.5 h-3.5" /> Trigger Live Flow
+                  </>
+                ) : (
+                  <>
+                    <Play className="w-3.5 h-3.5" /> Execute Test Run
+                  </>
+                )}
               </button>
             </div>
           </div>

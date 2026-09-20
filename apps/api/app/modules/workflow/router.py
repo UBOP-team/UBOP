@@ -169,6 +169,27 @@ async def test_flow(
         raise HTTPException(status_code=400, detail=str(e))
 
 
+@router.post("/flows/{flow_id}/run", response_model=FlowRunResponse)
+async def run_flow_live(
+    flow_id: str,
+    payload: Optional[Dict[str, Any]] = None,
+    svc: WorkflowService = Depends(get_wf_service),
+):
+    """Execute active flow version in live runtime (creating real approvals and domain effects)."""
+    try:
+        body = payload or {}
+        trigger_type = body.get("trigger_type", "MANUAL")
+        actual_payload = body.get("payload") if ("payload" in body and isinstance(body["payload"], dict)) else body
+        return await svc.execute_flow_run(
+            flow_id=flow_id,
+            trigger_type=trigger_type,
+            payload=actual_payload,
+            user_name="Interactive Operator",
+        )
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=str(e))
+
+
 # -------------------------------------------------------------
 # Runtime Execution & Diagnostics
 # -------------------------------------------------------------
