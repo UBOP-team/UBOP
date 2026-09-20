@@ -102,8 +102,13 @@ Completed:
   - **CRM-08 Provider & Sync UX**:
     - Source system provenance pill (`Provider: Salesforce / Canonical · Sync: Healthy · External ID`).
     - Non-blocking provider sync state separation from commercial business stage.
-- Verification:
+- Verification & Git Delivery:
   - Backend: 16/16 Pytest tests passing (100% green, including `test_crm_salesforce.py`).
   - Frontend: `tsc -b && vite build` 100% clean (0 errors, 1919 modules transformed).
   - Browser E2E: Full video recording (`crm_lightning_ux_demo`) verifying Lead record, 4-step Conversion Wizard execution, and Opportunity creation.
+  - Delivery Branch: `feat/crm-salesforce-lightning-module` (pushed to remote `origin/feat/crm-salesforce-lightning-module`).
+  - Commits:
+    - `feat(platform): implement blueprint interaction models & operational workflows across modules`
+    - `feat(crm): implement Salesforce Lightning CRM canonical domain and workspaces`
+    - `docs(crm): add CRM prompt specification and update progress tracker`
 
