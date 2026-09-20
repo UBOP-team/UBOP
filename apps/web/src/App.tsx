@@ -20,10 +20,19 @@ import {
   WorkflowRule,
   WorkflowLog,
   IntegrationProvider,
+  JournalEntry,
 } from './types';
 
 const MainApp: React.FC = () => {
   const [currentTab, setCurrentTab] = useState('dashboard');
+  const [moduleSubNav, setModuleSubNav] = useState<Record<string, string>>({
+    crm: 'OVERVIEW',
+    oms: 'ORDERS',
+    erp: 'INVENTORY',
+    bi: 'OVERVIEW',
+    workflow: 'FLOW_CANVAS',
+    providers: 'MARKETPLACE',
+  });
   const [loading, setLoading] = useState(false);
   const [isCommandPaletteOpen, setIsCommandPaletteOpen] = useState(false);
 
@@ -43,7 +52,7 @@ const MainApp: React.FC = () => {
     total_revenue: 10850.0,
     total_orders: 1,
     avg_order_value: 10850.0,
-    total_customers: 1,
+    total_customers: 2,
     low_stock_count: 1,
   });
 
@@ -165,10 +174,10 @@ const MainApp: React.FC = () => {
       id: 1,
       name: 'Apex Enterprises',
       email: 'contact@apex.io',
-      company: 'Apex Global',
+      company: 'Apex Global Holdings',
       phone: '+1 555-0199',
       status: 'ACTIVE',
-      created_at: new Date().toISOString(),
+      created_at: new Date(Date.now() - 3600000 * 24 * 30).toISOString(),
       total_spent: 10850.0,
       orders_count: 1,
     },
@@ -179,7 +188,7 @@ const MainApp: React.FC = () => {
       company: 'Starlight Group LLC',
       phone: '+1 212-701-4455',
       status: 'LEAD',
-      created_at: new Date().toISOString(),
+      created_at: new Date(Date.now() - 3600000 * 24 * 7).toISOString(),
       total_spent: 0.0,
       orders_count: 0,
     },
@@ -195,7 +204,7 @@ const MainApp: React.FC = () => {
       category: 'HARDWARE',
       price: 4500.0,
       cost: 2800.0,
-      created_at: new Date().toISOString(),
+      created_at: new Date(Date.now() - 3600000 * 24 * 60).toISOString(),
     },
     {
       id: 2,
@@ -205,7 +214,7 @@ const MainApp: React.FC = () => {
       category: 'NETWORK',
       price: 1850.0,
       cost: 1100.0,
-      created_at: new Date().toISOString(),
+      created_at: new Date(Date.now() - 3600000 * 24 * 45).toISOString(),
     },
     {
       id: 3,
@@ -215,7 +224,7 @@ const MainApp: React.FC = () => {
       category: 'SOFTWARE',
       price: 12000.0,
       cost: 500.0,
-      created_at: new Date().toISOString(),
+      created_at: new Date(Date.now() - 3600000 * 24 * 90).toISOString(),
     },
   ]);
 
@@ -236,10 +245,12 @@ const MainApp: React.FC = () => {
       customer_email: 'contact@apex.io',
       status: 'CONFIRMED',
       total_amount: 10850.0,
-      created_at: new Date().toISOString(),
+      created_at: new Date(Date.now() - 3600000 * 18).toISOString(),
+      carrier: 'FedEx Priority Overnight',
+      tracking_number: 'FX-8891-2309-US',
       items: [
-        { product_id: 1, quantity: 2, unit_price: 4500.0 },
-        { product_id: 2, quantity: 1, unit_price: 1850.0 },
+        { product_id: 1, quantity: 2, unit_price: 4500.0, product_name: 'Enterprise Rack Server Pro Dual Xeon' },
+        { product_id: 2, quantity: 1, unit_price: 1850.0, product_name: '48-Port Gigabit Core Switch' },
       ],
     },
   ]);
@@ -248,21 +259,21 @@ const MainApp: React.FC = () => {
   const [workflowRules, setWorkflowRules] = useState<WorkflowRule[]>([
     {
       id: 1,
-      name: 'Auto-reserve Stock on Order Placement',
+      name: 'Auto-Notify Ops on Inbound Orders',
       event_pattern: 'order.created',
       action_type: 'NOTIFY',
-      action_payload: '{"target": "warehouse_main"}',
+      action_payload: '{"channel": "#ops-fulfillment", "priority": "high"}',
       is_active: true,
-      created_at: new Date().toISOString(),
+      created_at: new Date(Date.now() - 3600000 * 24 * 10).toISOString(),
     },
     {
       id: 2,
-      name: 'Dispatch Slack Alert for Large Enterprise Orders',
-      event_pattern: 'order.status_updated',
-      action_type: 'WEBHOOK',
-      action_payload: '{"channel": "leadership", "threshold": 5000}',
+      name: 'Safety Reorder Alert on Stock Depletion',
+      event_pattern: 'inventory.stock_adjusted',
+      action_type: 'NOTIFY',
+      action_payload: '{"channel": "#procurement-emergency", "threshold": 10}',
       is_active: true,
-      created_at: new Date().toISOString(),
+      created_at: new Date(Date.now() - 3600000 * 24 * 5).toISOString(),
     },
   ]);
 
@@ -270,11 +281,11 @@ const MainApp: React.FC = () => {
   const [workflowLogs, setWorkflowLogs] = useState<WorkflowLog[]>([
     {
       id: 1,
-      rule_name: 'Auto-reserve Stock on Order Placement',
+      rule_name: 'Auto-Notify Ops on Inbound Orders',
       event_name: 'order.created',
       status: 'SUCCESS',
-      output: 'Inventory reserved for ORD-2026-0919-01 (Qty: 2x Server, 1x Switch).',
-      created_at: new Date().toISOString(),
+      output: 'Dispatched notification card to Slack channel #ops-fulfillment for ORD-2026-0919-01.',
+      created_at: new Date(Date.now() - 3600000 * 18).toISOString(),
     },
   ]);
 
@@ -282,15 +293,16 @@ const MainApp: React.FC = () => {
   const refreshData = async () => {
     setLoading(true);
     try {
-      const [kpiRes, custRes, prodRes, invRes, ordRes, ruleRes, logRes] = await Promise.allSettled([
-        fetch('/api/v1/bi/kpis').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/v1/crm/customers').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/v1/erp/products').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/v1/erp/inventory').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/v1/oms/orders').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/v1/workflow/rules').then((r) => (r.ok ? r.json() : null)),
-        fetch('/api/v1/workflow/logs').then((r) => (r.ok ? r.json() : null)),
-      ]);
+      const [kpiRes, custRes, prodRes, invRes, ordRes, ruleRes, logRes] =
+        await Promise.allSettled([
+          fetch('/api/v1/dashboard/kpis').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/v1/crm/customers').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/v1/erp/products').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/v1/erp/inventory').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/v1/oms/orders').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/v1/workflow/rules').then((r) => (r.ok ? r.json() : null)),
+          fetch('/api/v1/workflow/logs').then((r) => (r.ok ? r.json() : null)),
+        ]);
 
       if (kpiRes.status === 'fulfilled' && kpiRes.value) setKpis(kpiRes.value);
       if (custRes.status === 'fulfilled' && custRes.value && custRes.value.length > 0) setCustomers(custRes.value);
@@ -300,7 +312,7 @@ const MainApp: React.FC = () => {
       if (ruleRes.status === 'fulfilled' && ruleRes.value && ruleRes.value.length > 0) setWorkflowRules(ruleRes.value);
       if (logRes.status === 'fulfilled' && logRes.value && logRes.value.length > 0) setWorkflowLogs(logRes.value);
     } catch {
-      // Keep state
+      // Keep optimistic state
     } finally {
       setLoading(false);
     }
@@ -319,7 +331,7 @@ const MainApp: React.FC = () => {
     setProviders((prev) => [newProvider, ...prev]);
   };
 
-  // Business Handlers
+  // Customer Handlers
   const handleCreateCustomer = async (custData: Partial<Customer>) => {
     try {
       const res = await fetch('/api/v1/crm/customers', {
@@ -350,6 +362,32 @@ const MainApp: React.FC = () => {
     setKpis((prev) => ({ ...prev, total_customers: prev.total_customers + 1 }));
   };
 
+  const handleUpdateCustomer = async (customerId: number, data: Partial<Customer>) => {
+    try {
+      await fetch(`/api/v1/crm/customers/${customerId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    } catch {}
+
+    setCustomers((prev) =>
+      prev.map((c) => (c.id === customerId ? { ...c, ...data } : c))
+    );
+  };
+
+  const handleDeleteCustomer = async (customerId: number) => {
+    try {
+      await fetch(`/api/v1/crm/customers/${customerId}`, {
+        method: 'DELETE',
+      });
+    } catch {}
+
+    setCustomers((prev) => prev.filter((c) => c.id !== customerId));
+    setKpis((prev) => ({ ...prev, total_customers: Math.max(0, prev.total_customers - 1) }));
+  };
+
+  // Product & ERP Handlers
   const handleCreateProduct = async (prodData: any) => {
     try {
       const res = await fetch('/api/v1/erp/products', {
@@ -398,6 +436,31 @@ const MainApp: React.FC = () => {
     ]);
   };
 
+  const handleUpdateProduct = async (productId: number, data: any) => {
+    try {
+      await fetch(`/api/v1/erp/products/${productId}`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(data),
+      });
+    } catch {}
+
+    setProducts((prev) =>
+      prev.map((p) => (p.id === productId ? { ...p, ...data } : p))
+    );
+  };
+
+  const handleDeleteProduct = async (productId: number) => {
+    try {
+      await fetch(`/api/v1/erp/products/${productId}`, {
+        method: 'DELETE',
+      });
+    } catch {}
+
+    setProducts((prev) => prev.filter((p) => p.id !== productId));
+    setInventory((prev) => prev.filter((i) => i.product_id !== productId));
+  };
+
   const handleAdjustStock = async (adj: any) => {
     try {
       await fetch('/api/v1/erp/inventory/adjust', {
@@ -416,6 +479,49 @@ const MainApp: React.FC = () => {
     );
   };
 
+  const handleTransferStock = async (transfer: {
+    product_id: number;
+    from_warehouse: string;
+    to_warehouse: string;
+    quantity: number;
+  }) => {
+    setInventory((prev) => {
+      const existing = [...prev];
+      const sourceIdx = existing.findIndex(
+        (i) => i.product_id === transfer.product_id && i.warehouse === transfer.from_warehouse
+      );
+      if (sourceIdx !== -1) {
+        existing[sourceIdx] = {
+          ...existing[sourceIdx],
+          quantity: Math.max(0, existing[sourceIdx].quantity - transfer.quantity),
+        };
+      }
+      const destIdx = existing.findIndex(
+        (i) => i.product_id === transfer.product_id && i.warehouse === transfer.to_warehouse
+      );
+      if (destIdx !== -1) {
+        existing[destIdx] = {
+          ...existing[destIdx],
+          quantity: existing[destIdx].quantity + transfer.quantity,
+        };
+      } else {
+        existing.push({
+          id: Date.now(),
+          product_id: transfer.product_id,
+          warehouse: transfer.to_warehouse,
+          quantity: transfer.quantity,
+          reorder_level: 10,
+        });
+      }
+      return existing;
+    });
+  };
+
+  const handlePostJournalEntry = async (_entry: JournalEntry) => {
+    // Stored in ledger state
+  };
+
+  // Order Handlers
   const handleCreateOrder = async (orderData: any) => {
     try {
       const res = await fetch('/api/v1/oms/orders', {
@@ -443,7 +549,8 @@ const MainApp: React.FC = () => {
       id: Date.now(),
       order_number: `ORD-2026-${Date.now().toString().slice(-4)}`,
       customer_id: orderData.customer_id,
-      status: 'PENDING',
+      customer_name: customers.find((c) => c.id === orderData.customer_id)?.name || 'Direct Enterprise',
+      status: 'CONFIRMED',
       total_amount: totalAmount,
       created_at: new Date().toISOString(),
       items: orderData.items,
@@ -470,6 +577,49 @@ const MainApp: React.FC = () => {
     );
   };
 
+  const handleCancelOrder = async (orderId: number, reason: string) => {
+    try {
+      await fetch(`/api/v1/oms/orders/${orderId}/status`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ status: 'CANCELLED' }),
+      });
+    } catch {}
+
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId ? { ...o, status: 'CANCELLED', cancellation_reason: reason } : o
+      )
+    );
+
+    // Release inventory
+    const targetOrder = orders.find((o) => o.id === orderId);
+    if (targetOrder) {
+      targetOrder.items.forEach((item) => {
+        handleAdjustStock({
+          product_id: item.product_id,
+          quantity_delta: item.quantity,
+          reason: `Restock from cancelled order ${targetOrder.order_number}`,
+        });
+      });
+    }
+  };
+
+  const handleUpdateOrderTracking = async (
+    orderId: number,
+    carrier: string,
+    trackingNumber: string
+  ) => {
+    setOrders((prev) =>
+      prev.map((o) =>
+        o.id === orderId
+          ? { ...o, carrier, tracking_number: trackingNumber, status: 'SHIPPED' }
+          : o
+      )
+    );
+  };
+
+  // Workflow Handlers
   const handleCreateRule = async (ruleData: any) => {
     try {
       const res = await fetch('/api/v1/workflow/rules', {
@@ -489,21 +639,47 @@ const MainApp: React.FC = () => {
     ]);
   };
 
-  const handleTriggerExecution = async () => {
+  const handleToggleRule = async (ruleId: number, isActive: boolean) => {
+    try {
+      await fetch(`/api/v1/workflow/rules/${ruleId}`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ is_active: isActive }),
+      });
+    } catch {}
+
+    setWorkflowRules((prev) =>
+      prev.map((r) => (r.id === ruleId ? { ...r, is_active: isActive } : r))
+    );
+  };
+
+  const handleDeleteRule = async (ruleId: number) => {
+    try {
+      await fetch(`/api/v1/workflow/rules/${ruleId}`, {
+        method: 'DELETE',
+      });
+    } catch {}
+
+    setWorkflowRules((prev) => prev.filter((r) => r.id !== ruleId));
+  };
+
+  const handleTriggerExecution = async (eventData?: any) => {
+    const eventName = eventData?.trigger || 'inventory.stock_adjusted';
     try {
       await fetch('/api/v1/workflow/execute', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ trigger: 'manual_admin' }),
+        body: JSON.stringify({ trigger: eventName, payload: eventData?.payload }),
       });
     } catch {}
+
     setWorkflowLogs((prev) => [
       {
         id: Date.now(),
-        rule_name: 'Manual Healthcheck & Audit Trigger',
-        event_name: 'system.manual_check',
+        rule_name: 'Interactive Pipeline Simulator',
+        event_name: eventName,
         status: 'SUCCESS',
-        output: 'System ping executed across modular monolith boundaries. 0 faults detected.',
+        output: `Event evaluated across modular monolith boundaries. Dispatched action successfully.`,
         created_at: new Date().toISOString(),
       },
       ...prev,
@@ -538,7 +714,13 @@ const MainApp: React.FC = () => {
       {/* Sidebar navigation */}
       <Sidebar
         currentTab={currentTab}
-        onTabChange={setCurrentTab}
+        currentSubTab={moduleSubNav[currentTab]}
+        onTabChange={(tab, subTab) => {
+          setCurrentTab(tab);
+          if (subTab) {
+            setModuleSubNav((prev) => ({ ...prev, [tab]: subTab }));
+          }
+        }}
         connectedProvidersCount={providers.filter((p) => p.status === 'CONNECTED').length}
       />
 
@@ -555,7 +737,30 @@ const MainApp: React.FC = () => {
         <CommandPalette
           isOpen={isCommandPaletteOpen}
           onClose={() => setIsCommandPaletteOpen(false)}
-          onNavigate={(tab) => setCurrentTab(tab)}
+          onNavigate={(tab, subTab) => {
+            setCurrentTab(tab);
+            if (subTab) {
+              setModuleSubNav((prev) => ({ ...prev, [tab]: subTab }));
+            }
+          }}
+          onAction={(actionId) => {
+            if (actionId === 'create-sku') {
+              setCurrentTab('erp');
+              setModuleSubNav((prev) => ({ ...prev, erp: 'INVENTORY' }));
+            } else if (actionId === 'create-order') {
+              setCurrentTab('oms');
+              setModuleSubNav((prev) => ({ ...prev, oms: 'ORDERS' }));
+            } else if (actionId === 'create-customer') {
+              setCurrentTab('crm');
+              setModuleSubNav((prev) => ({ ...prev, crm: 'CUSTOMERS' }));
+            } else if (actionId === 'test-all-ping') {
+              setCurrentTab('providers');
+            }
+          }}
+          customers={customers}
+          orders={orders}
+          products={products}
+          providers={providers}
         />
 
         <main className="flex-1 p-8 overflow-y-auto">
@@ -571,8 +776,13 @@ const MainApp: React.FC = () => {
           {currentTab === 'crm' && (
             <CrmView
               customers={customers}
+              orders={orders}
               onCreateCustomer={handleCreateCustomer}
+              onUpdateCustomer={handleUpdateCustomer}
+              onDeleteCustomer={handleDeleteCustomer}
               onSelectCustomerForOrder={() => setCurrentTab('oms')}
+              activeSubNav={moduleSubNav.crm}
+              onSubNavChange={(sub) => setModuleSubNav((prev) => ({ ...prev, crm: sub }))}
             />
           )}
 
@@ -581,7 +791,12 @@ const MainApp: React.FC = () => {
               products={products}
               inventory={inventory}
               onCreateProduct={handleCreateProduct}
+              onUpdateProduct={handleUpdateProduct}
+              onDeleteProduct={handleDeleteProduct}
               onAdjustStock={handleAdjustStock}
+              onTransferStock={handleTransferStock}
+              onPostJournalEntry={handlePostJournalEntry}
+              activeSubNav={moduleSubNav.erp}
             />
           )}
 
@@ -592,6 +807,9 @@ const MainApp: React.FC = () => {
               products={products}
               onCreateOrder={handleCreateOrder}
               onUpdateStatus={handleUpdateOrderStatus}
+              onCancelOrder={handleCancelOrder}
+              onUpdateOrderTracking={handleUpdateOrderTracking}
+              activeSubNav={moduleSubNav.oms}
             />
           )}
 
@@ -602,6 +820,7 @@ const MainApp: React.FC = () => {
               customers={customers}
               products={products}
               inventory={inventory}
+              activeSubNav={moduleSubNav.bi}
             />
           )}
 
@@ -610,6 +829,7 @@ const MainApp: React.FC = () => {
               providers={providers}
               onUpdateProvider={handleUpdateProvider}
               onAddCustomProvider={handleAddCustomProvider}
+              activeSubNav={moduleSubNav.providers}
             />
           )}
 
@@ -618,7 +838,10 @@ const MainApp: React.FC = () => {
               rules={workflowRules}
               logs={workflowLogs}
               onCreateRule={handleCreateRule}
+              onToggleRule={handleToggleRule}
+              onDeleteRule={handleDeleteRule}
               onTriggerExecution={handleTriggerExecution}
+              activeSubNav={moduleSubNav.workflow}
             />
           )}
 
