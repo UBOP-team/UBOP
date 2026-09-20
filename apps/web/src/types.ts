@@ -200,24 +200,128 @@ export interface JournalEntry {
   status: 'POSTED' | 'DRAFT';
 }
 
+export type OrderState = 'OPEN' | 'CANCELLED' | 'ARCHIVED';
+export type PaymentState = 'UNPAID' | 'PENDING' | 'AUTHORIZED' | 'PARTIALLY_PAID' | 'PAID' | 'PARTIALLY_REFUNDED' | 'REFUNDED' | 'VOIDED';
+export type FulfillmentState = 'UNFULFILLED' | 'PARTIALLY_FULFILLED' | 'FULFILLED' | 'ON_HOLD' | 'CANCELLED';
+export type ReturnState = 'NONE' | 'REQUESTED' | 'IN_PROGRESS' | 'INSPECTION_COMPLETE' | 'COMPLETED' | 'DECLINED';
+export type SyncStatus = 'HEALTHY' | 'PENDING' | 'SYNCING' | 'DEGRADED' | 'FAILED' | 'DISCONNECTED';
+
 export interface OrderItem {
   id?: number;
-  product_id: number;
+  product_id?: number;
+  variant_id?: number;
   quantity: number;
   unit_price: number;
+  name?: string;
   product_name?: string;
+  sku?: string;
+  line_total?: number;
+  fulfilled_quantity?: number;
+  returned_quantity?: number;
+  refunded_quantity?: number;
+}
+
+export interface OrderTransaction {
+  id: number;
+  order_id: number;
+  type: string;
+  status: string;
+  amount: number;
+  currency: string;
+  payment_method: string;
+  provider_transaction_id?: string;
+  processed_at: string;
+  reference?: string;
+  notes?: string;
+}
+
+export interface OrderFulfillment {
+  id: number;
+  order_id: number;
+  status: string;
+  location_reference: string;
+  tracking_company?: string;
+  tracking_number?: string;
+  tracking_url?: string;
+  shipped_at?: string;
+  delivered_at?: string;
+  sync_status: string;
+  created_at: string;
+}
+
+export interface OrderReturnLine {
+  id: number;
+  return_id: number;
+  order_line_id: number;
+  quantity: number;
+  reason: string;
+  condition: string;
+  restock_disposition: string;
+}
+
+export interface OrderReturn {
+  id: number;
+  order_id: number;
+  return_number: string;
+  status: string;
+  reason_summary?: string;
+  requested_at: string;
+  approved_at?: string;
+  received_at?: string;
+  closed_at?: string;
+  sync_status: string;
+  lines: OrderReturnLine[];
+}
+
+export interface OrderRefund {
+  id: number;
+  order_id: number;
+  return_id?: number;
+  refund_number: string;
+  amount: number;
+  currency: string;
+  status: string;
+  reason?: string;
+  refund_method: string;
+  processed_at: string;
+  created_at: string;
+}
+
+export interface OrderTimelineEvent {
+  id: number;
+  order_id: number;
+  event_type: string;
+  actor_id: string;
+  summary: string;
+  metadata_json?: string;
+  created_at: string;
 }
 
 export interface Order {
   id: number;
   order_number: string;
-  customer_id: number;
+  customer_id?: number;
   customer_name?: string;
   customer_email?: string;
-  status: 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+  customer_snapshot?: Record<string, any>;
+  currency?: string;
+  subtotal?: number;
+  discount_total?: number;
+  shipping_total?: number;
+  tax_total?: number;
+  grand_total?: number;
   total_amount: number;
-  created_at: string;
-  items: OrderItem[];
+
+  order_state?: OrderState;
+  payment_state?: PaymentState;
+  fulfillment_state?: FulfillmentState;
+  return_state?: ReturnState;
+  sync_status?: SyncStatus;
+  status: 'PENDING' | 'CONFIRMED' | 'SHIPPED' | 'DELIVERED' | 'CANCELLED';
+
+  source_type?: string;
+  source_provider_id?: string;
+  external_order_id?: string;
   shipping_address?: string;
   payment_method?: string;
   provider?: string;
@@ -225,6 +329,21 @@ export interface Order {
   tracking_number?: string;
   cancellation_reason?: string;
   notes?: string;
+  tags?: string;
+  placed_at?: string;
+  cancelled_at?: string;
+  archived_at?: string;
+  last_synced_at?: string;
+  created_at: string;
+  updated_at?: string;
+
+  items: OrderItem[];
+  lines?: OrderItem[];
+  transactions?: OrderTransaction[];
+  fulfillments?: OrderFulfillment[];
+  returns?: OrderReturn[];
+  refunds?: OrderRefund[];
+  events?: OrderTimelineEvent[];
 }
 
 export interface KpiSummary {

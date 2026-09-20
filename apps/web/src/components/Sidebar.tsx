@@ -81,6 +81,7 @@ export const Sidebar: React.FC<SidebarProps> = ({
       children: [
         { id: 'OVERVIEW', label: 'Overview' },
         { id: 'ORDERS', label: 'Orders Index' },
+        { id: 'PRODUCTS', label: 'Products' },
         { id: 'FULFILLMENT', label: 'Fulfillment & Carrier' },
         { id: 'RETURNS', label: 'Returns & Refunds' },
       ],
