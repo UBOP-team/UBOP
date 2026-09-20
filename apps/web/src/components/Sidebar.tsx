@@ -91,10 +91,14 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'ERP',
       icon: Boxes,
       children: [
-        { id: 'OVERVIEW', label: 'Overview' },
-        { id: 'INVENTORY', label: 'Inventory & SKUs' },
-        { id: 'MOVEMENTS', label: 'Movement Audit Trail' },
-        { id: 'FINANCE', label: 'General Ledger' },
+        { id: 'OVERVIEW', label: 'Role Overview' },
+        { id: 'INVENTORY', label: 'Inventory & Stock' },
+        { id: 'WAREHOUSES', label: 'Warehouses & Locations' },
+        { id: 'SUPPLIERS', label: 'Suppliers' },
+        { id: 'PURCHASING', label: 'Requisitions & POs' },
+        { id: 'RECEIPTS', label: 'Goods Receipts' },
+        { id: 'TRANSFERS', label: 'Stock Transfers' },
+        { id: 'FINANCE', label: 'Invoices & Matching' },
       ],
     },
     {

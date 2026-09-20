@@ -797,6 +797,7 @@ const MainApp: React.FC = () => {
               onTransferStock={handleTransferStock}
               onPostJournalEntry={handlePostJournalEntry}
               activeSubNav={moduleSubNav.erp}
+              onSubNavChange={(sub) => setModuleSubNav((prev) => ({ ...prev, erp: sub }))}
             />
           )}
 
