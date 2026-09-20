@@ -30,7 +30,7 @@ const MainApp: React.FC = () => {
     oms: 'ORDERS',
     erp: 'INVENTORY',
     bi: 'OVERVIEW',
-    workflow: 'FLOW_CANVAS',
+    workflow: 'FLOWS',
     providers: 'MARKETPLACE',
   });
   const [loading, setLoading] = useState(false);

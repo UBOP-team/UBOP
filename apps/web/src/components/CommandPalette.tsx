@@ -99,7 +99,7 @@ export const CommandPalette: React.FC<CommandPaletteProps> = ({
         category: 'NAVIGATION',
         shortcut: 'G W',
         icon: GitMerge,
-        onSelect: () => onNavigate('workflow', 'FLOW_CANVAS'),
+        onSelect: () => onNavigate('workflow', 'FLOWS'),
       },
       {
         id: 'nav-providers',

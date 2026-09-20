@@ -374,6 +374,219 @@ export interface WorkflowLog {
   created_at: string;
 }
 
+// --------------------------------------------------------------------------
+// ServiceNow Workflow Studio Canonical Types
+// --------------------------------------------------------------------------
+export interface ActionInputField {
+  name: string;
+  label: string;
+  type: string;
+  required?: boolean;
+  description?: string;
+  default?: any;
+}
+
+export interface ActionOutputField {
+  name: string;
+  label: string;
+  type: string;
+  description?: string;
+}
+
+export interface ActionDefinition {
+  id: string;
+  organization_id: string;
+  key: string;
+  name: string;
+  description?: string;
+  category: 'CRM' | 'OMS' | 'ERP' | 'BI' | 'NOTIFICATIONS' | 'PROVIDERS' | 'UTILITIES';
+  input_schema: ActionInputField[];
+  output_schema: ActionOutputField[];
+  execution_type: 'INTERNAL_CAPABILITY' | 'PROVIDER_CAPABILITY' | 'WORKFLOW_UTILITY';
+  capability_reference: string;
+  connection_type_required?: string;
+  version: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'DEPRECATED';
+  usage_count: number;
+  created_at: string;
+}
+
+export interface SubflowDefinition {
+  id: string;
+  organization_id: string;
+  name: string;
+  description?: string;
+  input_schema: ActionInputField[];
+  output_schema: ActionOutputField[];
+  steps: any[];
+  active_version_id?: string;
+  draft_version_id?: string;
+  status: 'DRAFT' | 'PUBLISHED' | 'DEPRECATED';
+  created_at: string;
+}
+
+export interface ConditionRule {
+  field_ref: string;
+  operator: 'EQUALS' | 'NOT_EQUALS' | 'GT' | 'GTE' | 'LT' | 'LTE' | 'CONTAINS' | 'IS_EMPTY';
+  value: any;
+}
+
+export interface ConditionGroup {
+  operator: 'AND' | 'OR';
+  rules: ConditionRule[];
+}
+
+export interface StepDefinition {
+  step_key: string;
+  step_type: 'ACTION' | 'CONDITION' | 'FOR_EACH' | 'SUBFLOW' | 'WAIT' | 'APPROVAL';
+  name: string;
+  action_key?: string;
+  connection_reference?: string;
+  inputs?: Record<string, any>;
+  condition_group?: ConditionGroup;
+  true_steps?: StepDefinition[];
+  false_steps?: StepDefinition[];
+  for_each_collection?: string;
+  for_each_item_var?: string;
+  for_each_steps?: StepDefinition[];
+  subflow_id?: string;
+  subflow_inputs?: Record<string, any>;
+  wait_type?: 'DURATION' | 'UNTIL_DATETIME' | 'EVENT';
+  wait_duration_sec?: number;
+  wait_event_type?: string;
+  approval_role?: string;
+  approval_timeout_sec?: number;
+  on_error_policy?: 'FAIL_FLOW' | 'RETRY_THEN_FAIL' | 'CONTINUE';
+  timeout_seconds?: number;
+  retry_max_attempts?: number;
+  retry_backoff?: 'EXPONENTIAL' | 'FIXED';
+}
+
+export interface TriggerDefinition {
+  trigger_type: 'DOMAIN_EVENT' | 'SCHEDULE' | 'MANUAL' | 'WEBHOOK';
+  event_name?: string;
+  schedule_frequency?: 'ONCE' | 'HOURLY' | 'DAILY' | 'WEEKLY' | 'MONTHLY';
+  schedule_time?: string;
+  schedule_cron?: string;
+  webhook_path?: string;
+  manual_input_schema?: ActionInputField[];
+  conditions?: ConditionGroup;
+  enabled: boolean;
+}
+
+export interface FlowVersion {
+  id: string;
+  flow_definition_id: string;
+  version_number: number;
+  state: 'DRAFT' | 'PUBLISHED' | 'SUPERSEDED';
+  trigger_definition: TriggerDefinition;
+  flow_structure: StepDefinition[];
+  created_by: string;
+  created_at: string;
+  published_at?: string;
+}
+
+export interface FlowDefinition {
+  id: string;
+  organization_id: string;
+  name: string;
+  description?: string;
+  category: string;
+  owner_name: string;
+  status: 'DRAFT' | 'ACTIVE' | 'INACTIVE' | 'ARCHIVED';
+  active_version_id?: string;
+  draft_version_id?: string;
+  active_version?: FlowVersion;
+  draft_version?: FlowVersion;
+  last_run_at?: string;
+  last_run_status?: string;
+  run_count: number;
+  created_at: string;
+  updated_at: string;
+}
+
+export interface StepRun {
+  id: string;
+  flow_run_id: string;
+  step_key: string;
+  step_type: string;
+  step_name: string;
+  status: 'PENDING' | 'RUNNING' | 'WAITING' | 'SUCCEEDED' | 'FAILED' | 'SKIPPED' | 'CANCELLED';
+  attempt: number;
+  started_at: string;
+  completed_at?: string;
+  duration_ms?: number;
+  resolved_inputs: Record<string, any>;
+  outputs: Record<string, any>;
+  error_code?: string;
+  error_message?: string;
+}
+
+export interface FlowRun {
+  id: string;
+  organization_id: string;
+  flow_definition_id: string;
+  flow_version_id: string;
+  flow_name: string;
+  version_number: number;
+  trigger_type: string;
+  trigger_reference?: string;
+  status: 'QUEUED' | 'RUNNING' | 'WAITING' | 'PAUSED' | 'SUCCEEDED' | 'FAILED' | 'CANCELLED';
+  started_at: string;
+  completed_at?: string;
+  duration_ms?: number;
+  current_step_key?: string;
+  error_summary?: string;
+  correlation_id: string;
+  step_runs: StepRun[];
+  created_at: string;
+}
+
+export interface ApprovalRequest {
+  id: string;
+  organization_id: string;
+  flow_run_id: string;
+  step_run_id: string;
+  flow_name: string;
+  approver_type: string;
+  approver_reference: string;
+  status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'CANCELLED' | 'EXPIRED';
+  decision?: string;
+  comment?: string;
+  entity_reference: {
+    entity_type?: string;
+    entity_id?: string;
+    order_number?: string;
+    customer_name?: string;
+    amount?: number;
+    currency?: string;
+    summary?: string;
+    [key: string]: any;
+  };
+  requested_at: string;
+  responded_at?: string;
+  responded_by?: string;
+}
+
+export interface FlowTemplate {
+  id: string;
+  name: string;
+  description?: string;
+  category: string;
+  trigger_summary: string;
+  template_structure: {
+    trigger: TriggerDefinition;
+    steps: StepDefinition[];
+  };
+  created_at: string;
+}
+
+export interface FlowValidationResult {
+  is_valid: boolean;
+  errors: string[];
+  warnings: string[];
+}
+
 export type ProviderCategory = 'PAYMENTS' | 'COMMUNICATIONS' | 'LOGISTICS' | 'CRM' | 'CUSTOM';
 
 export interface IntegrationProvider {

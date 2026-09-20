@@ -119,9 +119,12 @@ export const Sidebar: React.FC<SidebarProps> = ({
       label: 'Automation',
       icon: GitFork,
       children: [
-        { id: 'FLOW_CANVAS', label: 'Flow Canvas' },
-        { id: 'RULES_TABLE', label: 'Rules Registry' },
-        { id: 'ANALYTICS', label: 'Run History' },
+        { id: 'FLOWS', label: 'Flows' },
+        { id: 'RUNS', label: 'Runs' },
+        { id: 'ACTIONS', label: 'Actions' },
+        { id: 'SUBFLOWS', label: 'Subflows' },
+        { id: 'TEMPLATES', label: 'Templates' },
+        { id: 'APPROVALS', label: 'Approvals' },
       ],
     },
   ];
