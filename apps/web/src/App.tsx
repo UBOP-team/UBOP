@@ -810,6 +810,7 @@ const MainApp: React.FC = () => {
               onCancelOrder={handleCancelOrder}
               onUpdateOrderTracking={handleUpdateOrderTracking}
               activeSubNav={moduleSubNav.oms}
+              onSubNavChange={(sub) => setModuleSubNav((prev) => ({ ...prev, oms: sub }))}
             />
           )}
 
