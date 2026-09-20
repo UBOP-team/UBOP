@@ -111,4 +111,46 @@ Completed:
     - `feat(platform): implement blueprint interaction models & operational workflows across modules`
     - `feat(crm): implement Salesforce Lightning CRM canonical domain and workspaces`
     - `docs(crm): add CRM prompt specification and update progress tracker`
+- Phase 8: Module 02 OMS — Shopify Admin UX & Workflow Implementation (`02-oms-shopify-ux-workflow-implementation-prompt.md`):
+  - **OMS-01 Domain & API Foundation**:
+    - Canonical SQLAlchemy models: `Order`, `OrderLine` (with `OrderItem = OrderLine` alias), `OrderTransaction`, `FulfillmentGroup`, `Fulfillment`, `Return`, `ReturnLine`, `Refund`, `OmsProduct`, `OmsProductVariant`, and `OrderEvent`.
+    - Maintained 5 independent operational state dimensions: `order_state`, `payment_state`, `fulfillment_state`, `return_state`, and `sync_status`.
+    - Pydantic validation schemas with stage gating and request DTOs (`RecordPaymentRequest`, `FulfillItemsRequest`, `CancelOrderRequest`, `CreateReturnRequest`, `ReviewReturnRequest`, `ProcessReturnRequest`, `CreateRefundRequest`).
+    - Specialized repositories (`OrderRepository`, `ProductRepository`, `FulfillmentRepository`, `ReturnRepository`) with eager loading (`_eager_options()`).
+    - Service layer with status calculators (`PaymentStateCalculator`, `FulfillmentStateCalculator`, `ReturnStateCalculator`), transactional operations, timeline logging, and EventBus publications (`oms.order_created`, `oms.payment_recorded`, `oms.order_fulfilled`, `oms.return_requested`, `oms.return_processed`, `oms.refund_issued`, `oms.order_cancelled`).
+    - Full REST endpoints under `/api/v1/oms/*` including work queues and metrics.
+    - 100% backwards compatibility maintained for existing `/api/v1/oms/orders` endpoints and database fields (`status`, `total_amount`, `items`) used by BI and existing test suites.
+  - **OMS-02 Orders Management (Shopify Resource Index)**:
+    - Saved view pills (`All`, `Unfulfilled`, `Unpaid`, `Open`, `Returns`, `Cancelled`, `Archived`).
+    - Multi-row selection checkboxes + floating bulk action bar.
+    - Multi-dimensional status badges for all 4 state dimensions (`PaymentStateBadge`, `FulfillmentStateBadge`, `ReturnStateBadge`, `SyncStatusBadge`).
+  - **OMS-03 2-Column Order Detail Workspace**:
+    - Header highlights panel with contextual primary action (`Fulfill Items`, `Record Payment`) and secondary actions dropdown.
+    - Left column: Order items table with SKU and fulfilled quantities, financial summary with calculated balance, dispatched shipments card, and RMA cases card.
+    - Right column: Customer card, delivery address, provenance card, and chronological `OrderTimeline` with operational note composer.
+  - **OMS-04 Order Creation & Ingestion**:
+    - Multi-line `CreateOrderModal` with line item add/remove, customer selection, carrier selection, and real-time subtotal, tax, and shipping fee calculation.
+  - **OMS-05 Payments & Financial Operations**:
+    - Focused `RecordPaymentModal` with transaction gateway options (`CASH`, `BANK_TRANSFER`, `CREDIT_CARD`, `POINT_OF_SALE`).
+    - `RefundModal` with max refundable amount enforcement, reason summary, and financial transaction recording.
+  - **OMS-06 Fulfillment Workflows**:
+    - 4-step `FulfillmentWizard` modal: Step 1 (Origin Location & Item Quantities), Step 2 (Carrier & Tracking), Step 3 (Shipping Label), Step 4 (Review & Dispatch).
+    - Supports partial fulfillment and updates line `fulfilled_quantity` accordingly.
+  - **OMS-07 Returns & RMA Management**:
+    - `CreateReturnModal` for initiating RMA requests with reason categorization.
+    - `ProcessReturnModal` for warehouse inspection, item restocking decision, and refund processing.
+    - Dedicated Returns queue with filter tabs (`ALL`, `REQUESTED`, `APPROVED`, `COMPLETED`, `DECLINED`).
+  - **OMS-08 Overview & Operational Command**:
+    - Metric cards for Orders Processed, Gross Operations Volume, Unfulfilled Workload, and Active Returns.
+    - Actionable operations queue and live activity feed.
+  - **OMS-09 Omnichannel Sync & Integration**:
+    - Channel provenance badges (`Shopify`, `Amazon`, `WooCommerce`, `POS`, `SAP`).
+    - Non-blocking provider sync state separation with manual sync retry action.
+- Verification & Delivery:
+  - Backend: 23/23 tests passing with Pytest (100% green, including `test_oms_shopify.py`).
+  - Ruff lint: All checks passed (0 errors).
+  - Frontend: `tsc -b && vite build` 100% clean (0 errors, 1925 modules transformed).
+  - Browser E2E: Full video recording (`oms_shopify_admin_demo`) verifying Overview, Orders Index, Order Detail, Fulfillment Wizard, and Returns & RMA queue.
+  - Delivery Branch: `feat/oms-shopify-admin-module`.
+
 
