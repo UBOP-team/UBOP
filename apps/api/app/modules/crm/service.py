@@ -1,5 +1,5 @@
 from datetime import datetime, timezone
-from typing import Any, Dict, List, Optional
+from typing import List, Optional
 from sqlalchemy.ext.asyncio import AsyncSession
 from app.core.events import Event, event_bus
 from app.providers.contracts import CustomerProvider
